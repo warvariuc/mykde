@@ -1,0 +1,9 @@
+[KSplash Theme: Kubuntu-Silver]
+Name = Kubuntu-Silver
+Description = Animated KSplash theme for kubuntu
+Version = 0.2
+Author = kubicle
+
+
+# Theme behaviour settings.
+Engine = KSplashX

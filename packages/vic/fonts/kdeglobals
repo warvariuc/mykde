@@ -1,0 +1,11 @@
+[General]
+XftAntialias=true
+XftHintStyle=hintfull
+XftSubPixel=rgb
+desktopFont=Droid Sans,11,-1,5,50,0,0,0,0,0
+fixed=Liberation Mono,11,-1,5,50,0,0,0,0,0
+font=Droid Sans,11,-1,5,50,0,0,0,0,0
+menuFont=Droid Sans,11,-1,5,50,0,0,0,0,0
+smallestReadableFont=Droid Sans,10,-1,5,50,0,0,0,0,0
+taskbarFont=Droid Sans,10,-1,5,50,0,0,0,0,0
+toolBarFont=Droid Sans,10,-1,5,50,0,0,0,0,0

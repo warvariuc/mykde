@@ -1,0 +1,11 @@
+[ActiveShadows]
+ColorType=4
+
+[General]
+BorderSize=3
+CustomShadows=true
+InnerBorder=0
+OuterBorder=0
+
+[InactiveShadows]
+ShadowType=0

@@ -1,0 +1,20 @@
+install, copy, replace, patch, update = xrange(5)
+dict(id = 1, action = install, args = "qtcurve")
+"Install custom fonts" install: ttf-droid
+"Install Qmmp with tweaks"
+"Install Krusader with tweaks"
+"Install Gimp and Inkscape"
+"Install LibreOffice"
+"Install Google Chrome"
+"Install VLC"
+"Install SpeedCrunch calculator"
+"Install Kubuntu Low fat Settings"
+"Install custom Oxygen widget theme"
+"Install Skype"
+"Install TeamViewer"
+"Set menu to classic"
+"Install custom KDE window manager (Kwin) theme"
+
+{
+  "requiredPackages": "qtcurve ttf-droid p7zip-full kwrite qmmp krusader speedcrunch vlc pavucontrol"
+}
