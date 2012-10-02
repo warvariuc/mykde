@@ -48,7 +48,7 @@ def main(_themesDir):
     global mainWindow, themesDir
     themesDir = _themesDir
     curDir = os.path.dirname(os.path.abspath(__file__))
-    mainWindow = uic.loadUi(os.path.join(curDir, 'main_window.ui'.encode('utf-8')))
+    mainWindow = uic.loadUi(os.path.join(curDir, 'main_window.ui'))
     webview.init(mainWindow.webView)
 
     mainWindow.themesComboBox.activated[str].connect(lambda text: webview.loadPage(text))

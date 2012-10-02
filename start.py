@@ -12,17 +12,16 @@ import os
 from scripts import main
 
 curDir = os.path.dirname(os.path.abspath(__file__))
-themesDir = os.path.join(curDir.decode('utf-8'), 'themes')
+themesDir = os.path.join(curDir, 'themes')
 
 main.main(themesDir)
 
-from PyQt4.QtCore import *
-from PyQt4.QtGui import *
+from PyQt4 import QtCore, QtGui
 import sys
 from random import randint
 
 
-app = QApplication(sys.argv)
+app = QtGui.QApplication(sys.argv)
 
 #model = QStandardItemModel()
 #

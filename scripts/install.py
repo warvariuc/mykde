@@ -10,8 +10,8 @@ import apt, json, subprocess, traceback
 
 #import pprint
 #pprint.pprint(sys.modules)
-from scripts import main
-from . import main
+import scripts.main
+main = sys.modules['scripts.main']
 
 
 def checkPackages(*requiredPackages):

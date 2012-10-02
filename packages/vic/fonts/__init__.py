@@ -1,10 +1,5 @@
-"Custom fonts"
-install_package('fonts-droid')
-update_config('./kdeglobals', '~/.kde/share/config/kdeglobals')
-request_config_reload()
-del('~/.fonts.conf')  # or patch and then move it to:
-cp('./fonts.conf', '~/.config/fontconfig/')
-cp('./fonts.conf', '~/.fonts.conf')  # in 12.04 only this works
+from package import Action
+
 """
 If a font in the browser in not Droid, in Google Chrome right click on the text with the worng font,
 select 'Inspect element', find 'Computed style' and 'font-family' in it:
@@ -18,5 +13,21 @@ LiberationSans-Regular.ttf: "Liberation Sans" "Regular"
 
 Ok, you found the offending font. Add it to 'fonts.conf' file.
 """
-def override_font(font, override, strong_binding=True):
-    """Add necessary nodes to fonts.conf """
+
+class Action(Action):
+    
+    def html_description(self):
+        return "Custom fonts"
+    
+    def proceed(self):
+        self.install_package('fonts-droid')
+        self.update_kconfig('./kdeglobals', '~/.kde/share/config/kdeglobals')
+        self.request_kconfig_reload()
+        self.cp('./fonts.conf', '~/.config/fontconfig/')
+        self.delete_file('~/.fonts.conf')  # or patch and then move it to:
+        self.copy_file('./fonts.conf', '~/.config/fontconfig/')
+        self.copy_file('./fonts.conf', '~/.fonts.conf')  # in 12.04 only this works
+
+    def override_font(self, font, override):
+        """Add necessary nodes to fonts.conf """
+
