@@ -15,11 +15,10 @@ Ok, you found the offending font. Add it to 'fonts.conf' file.
 """
 
 class Action(Action):
-    
+
     name = 'Droid fonts everywhere'
-    
-    html_description = "Custom fonts"
-    
+    description = "Custom fonts"
+
     def proceed(self):
         self.install_package('fonts-droid')
         self.update_kconfig('./kdeglobals', '~/.kde/share/config/kdeglobals')

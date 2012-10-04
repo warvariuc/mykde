@@ -1,5 +1,4 @@
-"""
-# Install 'most'
+r"""# Install 'most'
 $ sudo aptitude install most
 # Configure 'most' to handle man pages (~/.bashrc)
 $ export MANPAGER="/usr/bin/most -s"
@@ -20,5 +19,5 @@ if [ "$color_prompt" = yes ]; then
 export EDITOR=emacs
 export MANPAGER="/usr/bin/most -s"
 export GIT_PS1_SHOWDIRTYSTATE=true
-
 """
+""
