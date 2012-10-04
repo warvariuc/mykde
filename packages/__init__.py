@@ -49,12 +49,13 @@ def iter_action_classes(module):
 
 
 class Action():
+    
+    name = None
 
-    def html_description(self):
+    html_description = \
         """
-        Return HTML description of the action
+        HTML description of the action
         """
-        return ''
 
     def install_package(self):
         """

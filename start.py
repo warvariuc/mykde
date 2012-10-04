@@ -9,43 +9,38 @@ if sys.version < pythonRequiredVersion:
 
 
 import os
-from scripts import main
-
-curDir = os.path.dirname(os.path.abspath(__file__))
-themesDir = os.path.join(curDir, 'themes')
-
-main.main(themesDir)
-
-from PyQt4 import QtCore, QtGui
-import sys
 from random import randint
+from PyQt4 import QtCore, QtGui, uic
+#from scripts import main
 
+cur_dir = os.path.dirname(os.path.abspath(__file__))
 
 app = QtGui.QApplication(sys.argv)
 
-#model = QStandardItemModel()
-#
-#for n in range(10):                   
-#    item = QStandardItem('Item %s' % randint(1, 100))
-#    check = Qt.Checked if randint(0, 1) == 1 else Qt.Unchecked
-#    item.setCheckState(check)
-#    item.setCheckable(True)
-#    model.appendRow(item)
-#
-#
-#view = QListView()
-#view.setModel(model)
+if os.geteuid() == 0: # root privileges
+    QtGui.QMessageBox.warning(None, 'Root detected', 'Do not run this script as root.\n'\
+            'Run it as the user in whose session you want to install themes.')
+    sys.exit()
 
-#listWidget = QListWidget()
-#
-#for n in range(10):                   
-#    item = QListWidgetItem('Item %s' % randint(1, 100))
-#    check = Qt.Checked if randint(0, 1) == 1 else Qt.Unchecked
-#    item.setCheckState(check)
-#    item.setFlags(Qt.ItemIsUserCheckable | Qt.ItemIsEnabled)
-#    item.setToolTip(str(randint(1, 100)))
-#    listWidget.insertItem(0, item)
-#
-#
-#listWidget.show()
-#app.exec()
+
+main_window = uic.loadUi(os.path.join(cur_dir, 'scripts', 'main_window.ui'))
+#webview.init(mainWindow.webView)
+
+#mainWindow.themesComboBox.activated[str].connect(lambda text: webview.loadPage(text))
+#mainWindow.closePushButton.clicked.connect(mainWindow.close)
+#mainWindow.installPushButton.clicked.connect(lambda: install.install(unicode(mainWindow.themesComboBox.currentText())))
+#mainWindow.installPushButton.setFocus(True)
+
+action_list_widget = main_window.action_list
+
+for n in range(10):                   
+    item = QtGui.QListWidgetItem('Item %s' % randint(1, 100))
+    check = QtCore.Qt.Checked if randint(0, 1) == 1 else QtCore.Qt.Unchecked
+    item.setCheckState(check)
+    item.setFlags(QtCore.Qt.ItemIsUserCheckable | QtCore.Qt.ItemIsEnabled)
+    item.setToolTip(str(randint(1, 100)))
+    action_list_widget.insertItem(0, item)
+
+
+main_window.show()
+app.exec()
