@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>779</width>
-    <height>561</height>
+    <width>773</width>
+    <height>558</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -47,7 +47,7 @@
            </sizepolicy>
           </property>
           <property name="statusTip">
-           <string>Available action packages</string>
+           <string>Select an action package</string>
           </property>
          </widget>
         </item>
@@ -76,7 +76,7 @@
            </sizepolicy>
           </property>
           <property name="statusTip">
-           <string>Available action sets</string>
+           <string>Select an action set</string>
           </property>
          </widget>
         </item>
@@ -107,7 +107,7 @@
           <property name="minimumSize">
            <size>
             <width>220</width>
-            <height>0</height>
+            <height>250</height>
            </size>
           </property>
          </widget>
@@ -166,6 +166,12 @@
          <verstretch>0</verstretch>
         </sizepolicy>
        </property>
+       <property name="minimumSize">
+        <size>
+         <width>535</width>
+         <height>500</height>
+        </size>
+       </property>
        <property name="url">
         <url>
          <string>about:blank</string>
@@ -181,7 +187,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>779</width>
+     <width>773</width>
      <height>25</height>
     </rect>
    </property>

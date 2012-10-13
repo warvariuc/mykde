@@ -3,9 +3,10 @@
 __author__ = "Victor Varvariuc <victor.varvariuc@gmail.com>"
 
 import sys
-pythonRequiredVersion = '3.2' # tested with this version or later
-if sys.version < pythonRequiredVersion:
-    raise SystemExit('Python %s or newer required (you are using: %s).' % (pythonRequiredVersion, sys.version))
+python_required_version = '3.2' # tested with this version or later
+if sys.version < python_required_version:
+    raise SystemExit('Python %s or newer required (you are using: %s).' %
+                     (python_required_version, sys.version))
 
 
 import os
@@ -76,8 +77,7 @@ def iter_action_classes(module):
 main_window = uic.loadUi(os.path.join(cur_dir, 'scripts', 'main_window.ui'))
 #webview.init(mainWindow.webView)
 
-#mainWindow.install_button.clicked.connect(lambda: install.install(unicode(mainWindow.themesComboBox.currentText())))
-#mainWindow.installPushButton.setFocus(True)
+
 
 action_list_widget = main_window.action_list
 
@@ -89,7 +89,8 @@ def handle_package_combo_activated(index):
     for module in walk_modules(package_path):
         for action_class in iter_action_classes(module):
             item = QtGui.QListWidgetItem(action_class.name)
-            item.setFlags(QtCore.Qt.ItemIsSelectable | QtCore.Qt.ItemIsUserCheckable | QtCore.Qt.ItemIsEnabled)
+            item.setFlags(QtCore.Qt.ItemIsSelectable | QtCore.Qt.ItemIsUserCheckable |
+                          QtCore.Qt.ItemIsEnabled)
             item.setCheckState(QtCore.Qt.Checked)
             item.setToolTip(action_class.description)
 #            item.setStatusTip(action_class.description)
@@ -97,41 +98,40 @@ def handle_package_combo_activated(index):
 
     main_window.action_set_combo.clear()
     # default action sets
-    main_window.action_set_combo.addItem('All', '*')
-    main_window.action_set_combo.addItem('None', '')
-    main_window.action_set_combo.addItem('Custom', '?')
+    main_window.action_set_combo.addItem('All',
+                                         [QtCore.Qt.Checked] * action_list_widget.count())
+    main_window.action_set_combo.addItem('None',
+                                         [QtCore.Qt.Unchecked] * action_list_widget.count())
+    main_window.action_set_combo.addItem('Custom', None)
     
     main_window.action_set_combo.activated.emit(main_window.package_combo.currentIndex())
 
 
 def handle_action_set_combo_activated(index):
-    action_set_name = main_window.action_set_combo.itemData(index)
-    if action_set_name == '*':
+    action_set = main_window.action_set_combo.itemData(index)
+    if action_set is not None:
         for index in range(action_list_widget.count()):
-            action_list_widget.item(index).setCheckState(QtCore.Qt.Checked)
-    elif action_set_name == '':
-        for index in range(action_list_widget.count()):
-            action_list_widget.item(index).setCheckState(QtCore.Qt.Unchecked)
+            action_list_widget.item(index).setCheckState(action_set[index])
 
 def handle_action_list_item_changed(item):
-    # count checked items
-    checked_count = 0
+    action_set = []
     for index in range(action_list_widget.count()):
-        checked = action_list_widget.item(index).checkState() == QtCore.Qt.Checked
-        checked_count += checked
-    if checked_count == action_list_widget.count():
-        pass
-    elif checked_count == 0:
-        pass
+        action_set.append(action_list_widget.item(index).checkState())
+    for index in range(main_window.action_set_combo.count()):
+        if action_set == main_window.action_set_combo.itemData(index):
+            break
+    main_window.action_set_combo.setCurrentIndex(index)
+
 
 main_window.package_combo.activated[int].connect(handle_package_combo_activated)
 main_window.action_set_combo.activated[int].connect(handle_action_set_combo_activated)
 main_window.action_list.itemChanged.connect(handle_action_list_item_changed)
-
+#main_window.proceed_button.clicked.connect(lambda: install.install(unicode(mainWindow.themesComboBox.currentText())))
+main_window.proceed_button.setFocus(True)
 
 for _, module_name, _ in iter_modules(['packages']):
     main_window.package_combo.addItem(module_name, 'packages.' + module_name)
-    main_window.package_combo.activated.emit(main_window.package_combo.currentIndex())
+main_window.package_combo.activated.emit(0)
 
 main_window.show()
 app.exec()
