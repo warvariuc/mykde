@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>781</width>
-    <height>563</height>
+    <width>779</width>
+    <height>561</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -181,7 +181,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>781</width>
+     <width>779</width>
      <height>25</height>
     </rect>
    </property>
@@ -196,7 +196,24 @@
   </customwidget>
  </customwidgets>
  <resources/>
- <connections/>
+ <connections>
+  <connection>
+   <sender>quit_buton</sender>
+   <signal>clicked()</signal>
+   <receiver>MainWindow</receiver>
+   <slot>close()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>46</x>
+     <y>517</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>389</x>
+     <y>280</y>
+    </hint>
+   </hints>
+  </connection>
+ </connections>
  <designerdata>
   <property name="gridDeltaX">
    <number>10</number>
