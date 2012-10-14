@@ -30,4 +30,3 @@ class Action(Action):
 
     def override_font(self, font, override):
         """Add necessary nodes to fonts.conf """
-

@@ -1,11 +1,10 @@
-#author Victor Varvariuc <victor.varvariuc@gmail.com>, 2011
-from __future__ import unicode_literals, print_function
+__author__ = "Victor Varvariuc <victor.varvariuc@gmail.com>, 2012"
 
 import sys, os
 from PyQt4 import QtCore, QtGui, QtWebKit
 
 
-def loadPage(themeDir):
+def load_page(themeDir):
     #webView.load(QtCore.QUrl(pageFilePath)) # load existing page
     html = '''<html><head>
 <script language="JavaScript">
@@ -60,10 +59,10 @@ function popupImage(img) {
     webView.setHtml(html)
 
 
-def linkClicked(url):
+def handle_link_clicked(url):
     QtGui.QDesktopServices.openUrl(url)
 
-def handleContextMenu(coord):
+def handle_context_menu(coord):
     menu = QtGui.QMenu()
     menu.addAction('Clear', lambda: webView.setHtml(''))
     menu.exec_(QtGui.QCursor().pos())
@@ -81,8 +80,8 @@ def init(_webView):
     webView.createWindow = createWindow # override this function to enable popup windows
     webView.settings().setAttribute(QtWebKit.QWebSettings.JavascriptEnabled, True)
     webView.settings().setAttribute(QtWebKit.QWebSettings.JavascriptCanOpenWindows, True)
-    webView.linkClicked.connect(linkClicked)
+    webView.linkClicked.connect(handle_link_clicked)
     webView.page().setLinkDelegationPolicy(QtWebKit.QWebPage.DelegateAllLinks)
     webView.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
-    webView.customContextMenuRequested.connect(handleContextMenu)
+    webView.customContextMenuRequested.connect(handle_context_menu)
 

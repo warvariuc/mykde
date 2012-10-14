@@ -28,36 +28,3 @@ def dump_args(func):
         return func(*func_args, **func_kwargs)
 
     return wrapper
-
-
-def listThemes():
-    mainWindow.themesComboBox.clear()
-    for fileName in os.listdir(themesDir):
-        filePath = os.path.join(themesDir, fileName)
-        if os.path.isdir(filePath):
-            mainWindow.packagesCombo.addItem(filePath)
-    mainWindow.themesComboBox.activated[str].emit(mainWindow.packagesCombo.currentText())
-
-def main(_themesDir):
-    app = QtGui.QApplication(sys.argv)
-    if os.geteuid() == 0: # root privileges
-        QtGui.QMessageBox.warning(None, 'Root detected', 'Do not run this script as root.\n'\
-                'Run it as the user in whose session you want to install themes.')
-        sys.exit()
-
-    global mainWindow, themesDir
-    themesDir = _themesDir
-    curDir = os.path.dirname(os.path.abspath(__file__))
-    mainWindow = uic.loadUi(os.path.join(curDir, 'main_window.ui'))
-    webview.init(mainWindow.webView)
-
-    mainWindow.themesComboBox.activated[str].connect(lambda text: webview.loadPage(text))
-    mainWindow.closePushButton.clicked.connect(mainWindow.close)
-    mainWindow.installPushButton.clicked.connect(lambda: install.install(unicode(mainWindow.themesComboBox.currentText())))
-    mainWindow.installPushButton.setFocus(True)
-
-    listThemes()
-
-    mainWindow.show()
-    res = app.exec() # start the event loop
-    sys.exit(res)

@@ -11,7 +11,7 @@ if sys.version < python_required_version:
 
 import os
 from PyQt4 import QtCore, QtGui, uic
-#from scripts import main
+from scripts import webview, ActionSet
 
 cur_dir = os.path.dirname(os.path.abspath(__file__))
 
@@ -77,55 +77,87 @@ def iter_action_classes(module):
 main_window = uic.loadUi(os.path.join(cur_dir, 'scripts', 'main_window.ui'))
 #webview.init(mainWindow.webView)
 
-
-
 action_list_widget = main_window.action_list
 
 
-def handle_package_combo_activated(index):
+def on_package_combo_activated(index):
     main_window.action_list.clear()
 
     package_path = main_window.package_combo.itemData(index)
+    action_names = []
     for module in walk_modules(package_path):
         for action_class in iter_action_classes(module):
             item = QtGui.QListWidgetItem(action_class.name)
+            action_names.append(action_class.name)
             item.setFlags(QtCore.Qt.ItemIsSelectable | QtCore.Qt.ItemIsUserCheckable |
                           QtCore.Qt.ItemIsEnabled)
             item.setCheckState(QtCore.Qt.Checked)
             item.setToolTip(action_class.description)
 #            item.setStatusTip(action_class.description)
+            item.setData(QtCore.Qt.UserRole, action_class)
             action_list_widget.addItem(item)
 
+    action_names.sort()
     main_window.action_set_combo.clear()
     # default action sets
-    main_window.action_set_combo.addItem('All',
-                                         [QtCore.Qt.Checked] * action_list_widget.count())
-    main_window.action_set_combo.addItem('None',
-                                         [QtCore.Qt.Unchecked] * action_list_widget.count())
-    main_window.action_set_combo.addItem('Custom', None)
-    
-    main_window.action_set_combo.activated.emit(main_window.package_combo.currentIndex())
+    class AllActionSet(ActionSet):
+        name = 'All'
+        description = 'All available actions'
+        actions = action_names
+    class NoneActionSet(ActionSet):
+        name = 'None'
+        description = 'No actions'
+        actions = []
+    class CustomActionSet(ActionSet):
+        name = 'Custom'
+        description = 'Customly selected set'
+        actions = None
+    for action_set in (AllActionSet, NoneActionSet, CustomActionSet):
+        if action_set.actions is not None:
+            action_set.actions.sort()
+        main_window.action_set_combo.addItem(action_set.name, action_set)
+    main_window.action_set_combo.activated.emit(0)
 
 
-def handle_action_set_combo_activated(index):
+def on_action_set_combo_activated(index):
     action_set = main_window.action_set_combo.itemData(index)
-    if action_set is not None:
+    main_window.web_view.setHtml(main_window.action_set_combo.itemText(index))
+    if action_set.actions is not None:  # not Custom
         for index in range(action_list_widget.count()):
-            action_list_widget.item(index).setCheckState(action_set[index])
+            item = action_list_widget.item(index)
+            action_class = item.data(QtCore.Qt.UserRole)
+            check_state = QtCore.Qt.Checked if action_class.name in action_set.actions else QtCore.Qt.Unchecked
+            item.setCheckState(check_state)
+    action_list_widget.setCurrentItem(None)  # reset selection
 
-def handle_action_list_item_changed(item):
-    action_set = []
+
+def on_action_list_item_changed(item):
+    "Item checked/unchecked"
+    checked_actions = []
     for index in range(action_list_widget.count()):
-        action_set.append(action_list_widget.item(index).checkState())
+        action_item = action_list_widget.item(index)
+        if action_item.checkState() == QtCore.Qt.Checked:
+            action_class = action_item.data(QtCore.Qt.UserRole)
+            checked_actions.append(action_class.name)
+    checked_actions.sort()
     for index in range(main_window.action_set_combo.count()):
-        if action_set == main_window.action_set_combo.itemData(index):
+        if main_window.action_set_combo.itemData(index).actions == checked_actions:
             break
     main_window.action_set_combo.setCurrentIndex(index)
 
 
-main_window.package_combo.activated[int].connect(handle_package_combo_activated)
-main_window.action_set_combo.activated[int].connect(handle_action_set_combo_activated)
-main_window.action_list.itemChanged.connect(handle_action_list_item_changed)
+def on_action_list_current_row_changed(index):
+    if index is None:  # no row is selected
+        return
+    item = action_list_widget.item(index)
+    action_class = item.data(QtCore.Qt.UserRole)
+    main_window.web_view.setHtml(action_class.description)
+
+
+main_window.package_combo.activated[int].connect(on_package_combo_activated)
+main_window.action_set_combo.activated[int].connect(on_action_set_combo_activated)
+main_window.action_list.itemChanged.connect(on_action_list_item_changed)
+main_window.action_list.currentRowChanged.connect(on_action_list_current_row_changed)
 #main_window.proceed_button.clicked.connect(lambda: install.install(unicode(mainWindow.themesComboBox.currentText())))
 main_window.proceed_button.setFocus(True)
 

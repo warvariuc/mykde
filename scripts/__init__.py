@@ -21,3 +21,17 @@ class Action():
         """
         Copy a file
         """
+
+
+class ActionSet():
+    "Action set properties: description"
+    name = ''
+    description = ''
+    actions = []  # list of action names contained in this action set 
+
+
+class ActionPackage():
+    "Action package properties: desription, author, etc."
+    author = ''
+    version = 0
+    description = ''
