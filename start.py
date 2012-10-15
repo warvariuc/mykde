@@ -64,14 +64,13 @@ def get_object_by_path(object_path, package_path = None):
     return getattr(module, object_name)
 
 
-def iter_action_classes(module):
+def iter_classes(module, klass):
     """
-    Return an iterator over all Action subclasses defined in the given module
+    Return an iterator over all klass subclasses defined in the given module
     """
     for obj in vars(module).values():
-        if isinstance(obj, type) and issubclass(obj, Action) and obj.__module__ == module.__name__:
+        if isinstance(obj, type) and issubclass(obj, klass) and obj.__module__ == module.__name__:
             yield obj
-
 
 
 main_window = uic.loadUi(os.path.join(cur_dir, 'scripts', 'main_window.ui'))
@@ -80,39 +79,48 @@ main_window = uic.loadUi(os.path.join(cur_dir, 'scripts', 'main_window.ui'))
 action_list_widget = main_window.action_list
 
 
+class NoneActionSet(ActionSet):
+    name = 'None'
+    description = 'No actions'
+    actions = []
+
+
+class CustomActionSet(ActionSet):
+    name = 'Custom'
+    description = 'Customly selected set'
+    actions = None
+
+
 def on_package_combo_activated(index):
     main_window.action_list.clear()
 
     package_path = main_window.package_combo.itemData(index)
-    action_names = []
+    all_actions = []
     for module in walk_modules(package_path):
-        for action_class in iter_action_classes(module):
-            item = QtGui.QListWidgetItem(action_class.name)
-            action_names.append(action_class.name)
+        for action in iter_classes(module, Action):
+            item = QtGui.QListWidgetItem(action.name)
+            all_actions.append(action)
             item.setFlags(QtCore.Qt.ItemIsSelectable | QtCore.Qt.ItemIsUserCheckable |
                           QtCore.Qt.ItemIsEnabled)
             item.setCheckState(QtCore.Qt.Checked)
-            item.setToolTip(action_class.description)
-#            item.setStatusTip(action_class.description)
-            item.setData(QtCore.Qt.UserRole, action_class)
+            item.setToolTip(action.description)
+#            item.setStatusTip(action.description)
+            item.setData(QtCore.Qt.UserRole, action)
             action_list_widget.addItem(item)
 
-    action_names.sort()
     main_window.action_set_combo.clear()
-    # default action sets
+
     class AllActionSet(ActionSet):
         name = 'All'
         description = 'All available actions'
-        actions = action_names
-    class NoneActionSet(ActionSet):
-        name = 'None'
-        description = 'No actions'
-        actions = []
-    class CustomActionSet(ActionSet):
-        name = 'Custom'
-        description = 'Customly selected set'
-        actions = None
-    for action_set in (AllActionSet, NoneActionSet, CustomActionSet):
+        actions = all_actions
+
+    # default action sets
+    action_sets = [AllActionSet, NoneActionSet]
+    for action_set in iter_classes(importlib.import_module(package_path), ActionSet):
+        action_sets.append(action_set)
+    action_sets.append(CustomActionSet)  # at the end
+    for action_set in action_sets:
         if action_set.actions is not None:
             action_set.actions.sort()
         main_window.action_set_combo.addItem(action_set.name, action_set)
@@ -125,8 +133,8 @@ def on_action_set_combo_activated(index):
     if action_set.actions is not None:  # not Custom
         for index in range(action_list_widget.count()):
             item = action_list_widget.item(index)
-            action_class = item.data(QtCore.Qt.UserRole)
-            check_state = QtCore.Qt.Checked if action_class.name in action_set.actions else QtCore.Qt.Unchecked
+            action = item.data(QtCore.Qt.UserRole)
+            check_state = QtCore.Qt.Checked if action in action_set.actions else QtCore.Qt.Unchecked
             item.setCheckState(check_state)
     action_list_widget.setCurrentItem(None)  # reset selection
 
@@ -137,8 +145,8 @@ def on_action_list_item_changed(item):
     for index in range(action_list_widget.count()):
         action_item = action_list_widget.item(index)
         if action_item.checkState() == QtCore.Qt.Checked:
-            action_class = action_item.data(QtCore.Qt.UserRole)
-            checked_actions.append(action_class.name)
+            action = action_item.data(QtCore.Qt.UserRole)
+            checked_actions.append(action)
     checked_actions.sort()
     for index in range(main_window.action_set_combo.count()):
         if main_window.action_set_combo.itemData(index).actions == checked_actions:
@@ -147,11 +155,11 @@ def on_action_list_item_changed(item):
 
 
 def on_action_list_current_row_changed(index):
-    if index is None:  # no row is selected
+    if index == -1:  # no row is selected
         return
     item = action_list_widget.item(index)
-    action_class = item.data(QtCore.Qt.UserRole)
-    main_window.web_view.setHtml(action_class.description)
+    action = item.data(QtCore.Qt.UserRole)
+    main_window.web_view.setHtml(action.description)
 
 
 main_window.package_combo.activated[int].connect(on_package_combo_activated)

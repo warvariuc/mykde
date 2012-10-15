@@ -1,4 +1,5 @@
-from scripts import ActionPackage
+from scripts import ActionPackage, ActionSet
+
 
 class ActionPackage(ActionPackage):
     author = 'Victor Varvaryuk <victor.varvariuc@gmail.com>'
@@ -24,7 +25,6 @@ The theme pack consists of files and settings for different parts of KDE, and sc
 Author of installation scripts and package compilation: <a href="mailto:victor.varvariuc@gmail.com">Victor Varvariuc</a>, 2011
 # chmod -x /usr/bin/kactivitymanagerd
 
-install, copy, replace, patch, update = xrange(5)
 dict(id = 1, action = install, args = "qtcurve")
 "Install custom fonts" install: ttf-droid
 "Install Qmmp with tweaks"
@@ -46,3 +46,8 @@ dict(id = 1, action = install, args = "qtcurve")
 }
 
 """
+from . import fonts
+class TestActionSet(ActionSet):
+    name = 'test'
+    description = 'test'
+    actions = [fonts.Action]  # list of action classes contained in this action set

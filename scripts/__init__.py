@@ -1,5 +1,13 @@
+class ActionMeta(type):
 
-class Action():
+    def __lt__(self, other):
+        return id(self) < id(other)
+
+    def __eq__(self, other):
+        return id(self) == id(other)
+
+
+class Action(metaclass=ActionMeta):
 
     name = None
     description = \

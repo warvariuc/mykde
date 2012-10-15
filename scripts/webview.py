@@ -6,7 +6,8 @@ from PyQt4 import QtCore, QtGui, QtWebKit
 
 def load_page(themeDir):
     #webView.load(QtCore.QUrl(pageFilePath)) # load existing page
-    html = '''<html><head>
+    html = '''\
+<html><head>
 <script language="JavaScript">
 function popupImage(img) {
   var newImg = new Image();
@@ -53,7 +54,12 @@ function popupImage(img) {
     for fileName in os.listdir(screenshotsDir):
         filePath = os.path.join(screenshotsDir, fileName)
         if os.path.isfile(filePath):
-            html += '<div class="thumbnail_placeholder"><div><img src="file://' + filePath + '" onclick="javascript:popupImage(this)"/></div></div>'
+            html += """\
+<div class="thumbnail_placeholder">
+    <div>
+        <img src="file://{}" onclick="javascript:popupImage(this)"/>
+    </div>
+</div>""".format(filePath)
 
     html += '<div style="clear: both"></div></body></html>'
     webView.setHtml(html)
