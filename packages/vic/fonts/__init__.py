@@ -23,7 +23,7 @@ class Action(Action):
         self.install_package('fonts-droid')
         self.update_kconfig('./kdeglobals', '~/.kde/share/config/kdeglobals')
         self.request_kconfig_reload()
-        self.cp('./fonts.conf', '~/.config/fontconfig/')
+        self.copy_file('./fonts.conf', '~/.config/fontconfig/')
         self.delete_file('~/.fonts.conf')  # or patch and then move it to:
         self.copy_file('./fonts.conf', '~/.config/fontconfig/')
         self.copy_file('./fonts.conf', '~/.fonts.conf')  # in 12.04 only this works

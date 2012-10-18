@@ -2,25 +2,49 @@
 
 __author__ = "Victor Varvariuc <victor.varvariuc@gmail.com>"
 
+import os
 import sys
+
 python_required_version = '3.2' # tested with this version or later
 if sys.version < python_required_version:
     raise SystemExit('Python %s or newer required (you are using: %s).' %
                      (python_required_version, sys.version))
 
+import subprocess
+from PyQt4 import QtCore, QtGui
 
-import os
-from PyQt4 import QtCore, QtGui, uic
+app = QtGui.QApplication(sys.argv)
+
+def error(title, message):
+    def show_error():
+        QtGui.QMessageBox.critical(None, title, message)
+        QtGui.QApplication.quit()
+    QtCore.QTimer.singleShot(0, show_error)
+    app.exec()
+    sys.exit(1)
+
+if os.geteuid() == 0:  # root privileges
+    error('Root detected', 'Do not run this script as root.\n'
+          'Run it as the user in whose session you want to proceed with the actions.')
+
+# the distributor's ID
+distro_id = subprocess.check_output(['lsb_release', '--short', '--id'])
+distro_id = distro_id.decode().strip().lower()
+if distro_id != 'ubuntu':
+    error('Wrong distro', 'Ubuntu not found:\n%s.' % distro_id)
+
+# the release number of the currently installed distribution
+distro_release_id = subprocess.check_output(['lsb_release', '--short', '--release'])
+distro_release_id = distro_release_id.decode().strip()
+if distro_id < '12.10':
+    error('Wrong release', 'Need Ubuntu 12.10 or younger.')
+
+
+from PyQt4 import uic
 from scripts import webview, ActionSet
 
 cur_dir = os.path.dirname(os.path.abspath(__file__))
 
-app = QtGui.QApplication(sys.argv)
-
-if os.geteuid() == 0: # root privileges
-    QtGui.QMessageBox.warning(None, 'Root detected', 'Do not run this script as root.\n'\
-            'Run it as the user in whose session you want to install themes.')
-    sys.exit()
 
 
 import importlib
