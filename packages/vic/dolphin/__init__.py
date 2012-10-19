@@ -1,4 +1,4 @@
-from packages import Action
+from scripts import Action
 
 
 class Action(Action):

@@ -24,6 +24,7 @@ I tried to make the QtCurve theme to contain is little lines as possible - to ma
 The theme pack consists of files and settings for different parts of KDE, and scripts to install those.
 Author of installation scripts and package compilation: <a href="mailto:victor.varvariuc@gmail.com">Victor Varvariuc</a>, 2011
 # chmod -x /usr/bin/kactivitymanagerd
+xnview - unpack to ~/apps/ and create .descktop file in Graphics
 
 dict(id = 1, action = install, args = "qtcurve")
 "Install custom fonts" install: ttf-droid
