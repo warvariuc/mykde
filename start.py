@@ -196,6 +196,8 @@ def on_proceed_button_clicked(checked=False):
             actions.append(action_class(main_window))
             packages_to_install.extend(action_class.packages)
     actions[0].install_packages(packages_to_install)
+    for action in actions:
+        action.proceed()
 
 
 

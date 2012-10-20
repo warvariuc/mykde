@@ -71,7 +71,7 @@ class Action(metaclass = ActionMeta):
             except KeyError:  # package not found
                 apt_package = None
             if apt_package is None or apt_package.is_installed:
-                packages.pop(apt_package.name)
+                packages.pop(package_name)
             else:
                 packages[package_name] = apt_package.candidate.summary
         self.main_window.statusBar().clearMessage()

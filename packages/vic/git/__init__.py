@@ -4,7 +4,7 @@ from scripts import Action
 class Action(Action):
 
     name = 'git'
-    description = "Git with helper programs and cusotm settings"
+    description = "Git with helper programs and custom settings"
 
     packages = ['git', 'gitk', 'giggle']
 
