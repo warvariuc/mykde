@@ -97,8 +97,33 @@ def iter_classes(module, klass):
             yield obj
 
 
-main_window = uic.loadUi(os.path.join(cur_dir, 'scripts', 'main_window.ui'))
-#webview.init(mainWindow.webView)
+MainWindowClass = uic.loadUiType(os.path.join(cur_dir, 'scripts', 'main_window.ui'))[0]
+
+
+class MainWindow(QtGui.QMainWindow, MainWindowClass):
+
+    def __init__(self):
+        super().__init__()
+        # uic adds a function to our class called setupUi
+        # calling this creates all the widgets from the .ui file
+        self.setupUi(self)
+
+    @QtCore.pyqtSlot()
+    def on_proceed_button_clicked(self, checked=False):
+        actions = []
+        packages_to_install = []
+        for index in range(action_list_widget.count()):
+            action_item = action_list_widget.item(index)
+            if action_item.checkState() == QtCore.Qt.Checked:
+                action_class = action_item.data(QtCore.Qt.UserRole)
+                actions.append(action_class(main_window))
+                packages_to_install.extend(action_class.packages)
+        actions[0].install_packages(packages_to_install)
+        for action in actions:
+            action.proceed()
+
+
+main_window = MainWindow()
 
 action_list_widget = main_window.action_list
 
@@ -153,7 +178,7 @@ def on_package_combo_activated(index):
 
 def on_action_set_combo_activated(index):
     action_set = main_window.action_set_combo.itemData(index)
-    main_window.web_view.setHtml(main_window.action_set_combo.itemText(index))
+#    main_window.web_view.setHtml(main_window.action_set_combo.itemText(index))
     if action_set.actions is not None:  # not Custom
         for index in range(action_list_widget.count()):
             item = action_list_widget.item(index)
@@ -183,29 +208,22 @@ def on_action_list_current_row_changed(index):
         return
     item = action_list_widget.item(index)
     action = item.data(QtCore.Qt.UserRole)
-    main_window.web_view.setHtml(action.description)
+#    main_window.web_view.setHtml(action.description)
 
 
-def on_proceed_button_clicked(checked=False):
-    actions = []
-    packages_to_install = []
-    for index in range(action_list_widget.count()):
-        action_item = action_list_widget.item(index)
-        if action_item.checkState() == QtCore.Qt.Checked:
-            action_class = action_item.data(QtCore.Qt.UserRole)
-            actions.append(action_class(main_window))
-            packages_to_install.extend(action_class.packages)
-    actions[0].install_packages(packages_to_install)
-    for action in actions:
-        action.proceed()
 
+
+#ffmpeg = subprocess.Popen(['/usr/bin/ffmpeg', '-i', the_file], stderr=subprocess.STDOUT,stdout = subprocess.PIPE )
+#out, err = ffmpeg.communicate()
+#if "Duration" in out:
+#    print out[out.index("Duration"):].split()[1]        
+        
 
 
 main_window.package_combo.activated[int].connect(on_package_combo_activated)
 main_window.action_set_combo.activated[int].connect(on_action_set_combo_activated)
 main_window.action_list.itemChanged.connect(on_action_list_item_changed)
 main_window.action_list.currentRowChanged.connect(on_action_list_current_row_changed)
-main_window.proceed_button.clicked[bool].connect(on_proceed_button_clicked)
 main_window.proceed_button.setFocus(True)
 
 for _, module_name, _ in iter_modules(['packages']):

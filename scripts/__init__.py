@@ -39,6 +39,14 @@ class Action(metaclass = ActionMeta):
     def __init__(self, main_window):
         assert isinstance(main_window, QtGui.QMainWindow)
         self.main_window = main_window
+        
+    def print_message(self, message):
+        text_edit = self.main_window.text_edit
+        tc = text_edit.textCursor()
+        tc.movePosition(QtGui.QTextCursor.End)
+        text_edit.setTextCursor(tc)
+        text_edit.insertHtml(message)
+        text_edit.ensureCursorVisible() # scroll to the new message
 
     def install_trusted_public_keys(self, key_urls):
         assert isinstance(key_urls, (list, tuple))
@@ -56,13 +64,12 @@ class Action(metaclass = ActionMeta):
         """
         apt-get install packages, which are not yet installed
         @param package_names: list of package names to install
-        @param main_window: QMainWindow with a status bar
         """
         # TODO: show a window with the list of required packages and their description
         assert isinstance(package_names, (list, tuple))
         packages = {package_name: None for package_name in package_names}
 
-        self.main_window.statusBar().showMessage('Checking if required packages are installed...')
+        self.print_message('Checking if required packages are already installed...')
         apt_cache = apt.Cache()
         apt_cache.open()
         for package_name in list(packages.keys()):
@@ -74,7 +81,6 @@ class Action(metaclass = ActionMeta):
                 packages.pop(package_name)
             else:
                 packages[package_name] = apt_package.candidate.summary
-        self.main_window.statusBar().clearMessage()
 
         if not packages:
             return True  # all required packages are installed
@@ -90,12 +96,11 @@ class Action(metaclass = ActionMeta):
         if res != QtGui.QMessageBox.Ok:
             return
 
-        self.main_window.statusBar().showMessage('Installing additional packages...')
+        self.print_message('Installing additional packages...')
         window_id = self.main_window.effectiveWinId()
         comment = 'Install required packages'
         cmd = 'apt-get --assume-yes install %s' % ' '.join(packages)
         res, msg = self.call(['kdesudo', '--comment', comment, '--attach', str(window_id), '-c', cmd])
-        self.main_window.statusBar().clearMessage()
         if not res:
             QtGui.QMessageBox.critical(
                 self.main_window, 'Error',

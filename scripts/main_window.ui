@@ -6,15 +6,15 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>773</width>
-    <height>558</height>
+    <width>775</width>
+    <height>560</height>
    </rect>
   </property>
   <property name="windowTitle">
    <string>My KDE</string>
   </property>
   <widget class="QWidget" name="centralwidget">
-   <layout class="QVBoxLayout" name="verticalLayout">
+   <layout class="QHBoxLayout" name="horizontalLayout">
     <item>
      <widget class="QSplitter" name="splitter">
       <property name="orientation">
@@ -159,23 +159,12 @@
         </item>
        </layout>
       </widget>
-      <widget class="QWebView" name="web_view">
-       <property name="sizePolicy">
-        <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
-         <horstretch>0</horstretch>
-         <verstretch>0</verstretch>
-        </sizepolicy>
-       </property>
+      <widget class="QTextEdit" name="text_edit">
        <property name="minimumSize">
         <size>
          <width>535</width>
          <height>500</height>
         </size>
-       </property>
-       <property name="url">
-        <url>
-         <string>about:blank</string>
-        </url>
        </property>
       </widget>
      </widget>
@@ -187,20 +176,13 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>773</width>
+     <width>775</width>
      <height>25</height>
     </rect>
    </property>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
  </widget>
- <customwidgets>
-  <customwidget>
-   <class>QWebView</class>
-   <extends>QWidget</extends>
-   <header>QtWebKit/QWebView</header>
-  </customwidget>
- </customwidgets>
  <resources/>
  <connections>
   <connection>
