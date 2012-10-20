@@ -9,6 +9,15 @@ from PyKDE4.kdeui import KGlobalSettings
 from PyKDE4.kio import KRun
 
 
+
+def debug_trace():
+    '''Set a tracepoint in the Python debugger that works with Qt'''
+    from PyQt4.QtCore import pyqtRemoveInputHook
+    from pdb import set_trace
+    pyqtRemoveInputHook()
+    set_trace()
+
+
 class ActionMeta(type):
     "Action metaclass to make Action sublclasses sortable."
 
@@ -19,49 +28,83 @@ class ActionMeta(type):
         return id(self) == id(other)
 
 
-class Action(metaclass=ActionMeta):
+class Action(metaclass = ActionMeta):
 
     name = None
     description = "HTML description of the action"
+    trusted_public_keys = []  # public to keys to install for repositories
+    repositories = {}  # {repo_name: repo_url} repositories for installing packages
+    packages = []  # list of package names to install
+
+    def __init__(self, main_window):
+        assert isinstance(main_window, QtGui.QMainWindow)
+        self.main_window = main_window
+
+    def install_trusted_public_keys(self, key_urls):
+        assert isinstance(key_urls, (list, tuple))
+        for url in key_urls:
+            self.call('wget -q -O - %s | sudo apt-key add -' % url)
+
+    def add_repositories(self, repositories):
+        assert isinstance(repositories, dict)
+        self.call("""sudo sh -c 'echo "deb http://dl.google.com/linux/chrome/deb/ stable main" >> /etc/apt/sources.list.d/google.list'""")
+
+    def update_package_index(self):
+        self.call('sudo apt-get update')
 
     def install_packages(self, package_names):
         """
         apt-get install packages, which are not yet installed
         @param package_names: list of package names to install
+        @param main_window: QMainWindow with a status bar
         """
+        # TODO: show a window with the list of required packages and their description
         assert isinstance(package_names, (list, tuple))
-        package_names = set(package_names)
+        packages = {package_name: None for package_name in package_names}
 
-#        main.mainWindow.statusBar().showMessage('Checking if required packages are installed...')
-        packages = apt.Cache()
-        packages.open()
-        for package in packages:
-            if package.is_installed and package.name in package_names:
-                package_names.remove(package.name)
-        main.mainWindow.statusBar().clearMessage()
+        self.main_window.statusBar().showMessage('Checking if required packages are installed...')
+        apt_cache = apt.Cache()
+        apt_cache.open()
+        for package_name in list(packages.keys()):
+            try:
+                apt_package = apt_cache[package_name]
+            except KeyError:  # package not found
+                apt_package = None
+            if apt_package is None or apt_package.is_installed:
+                packages.pop(apt_package.name)
+            else:
+                packages[package_name] = apt_package.candidate.summary
+        self.main_window.statusBar().clearMessage()
 
-        if not package_names:
+        if not packages:
             return True  # all required packages are installed
 
-        res = QtGui.QMessageBox.question(main.mainWindow, 'Required packages',
-                'These additional packages must be installed:\n  ' + '\n  '.join(package_names),
-                QtGui.QMessageBox.Yes | QtGui.QMessageBox.No, QtGui.QMessageBox.Yes)
-        if res != QtGui.QMessageBox.Yes:
+        message = 'These additional packages must be installed:<ul>'
+        for package_name, package_summary in packages.items():
+            message += '<li><b>%s</b>: %s</li>' % (package_name, package_summary)
+        message += '</ul>'
+        res = QtGui.QMessageBox.question(
+            self.main_window, 'Required packages', message,
+            QtGui.QMessageBox.Ok | QtGui.QMessageBox.Cancel, QtGui.QMessageBox.Ok
+        )
+        if res != QtGui.QMessageBox.Ok:
             return
 
-#        main.mainWindow.statusBar().showMessage('Installing additional packages...')
-        cmd = 'kdesudo "apt-get --assume-yes install %s"' % ' '.join(package_names)
-        try:
-            output = subprocess.check_output(cmd, shell=True)
-        except subprocess.CalledProcessError as e:
-            QtGui.QMessageBox.warning(main.mainWindow, 'Error',
-                    'An error occured during apt-get install:\n\n%s' % e.output)
+        self.main_window.statusBar().showMessage('Installing additional packages...')
+        window_id = self.main_window.effectiveWinId()
+        comment = 'Install required packages'
+        cmd = 'apt-get --assume-yes install %s' % ' '.join(packages)
+        res, msg = self.call(['kdesudo', '--comment', comment, '--attach', str(window_id), '-c', cmd])
+        self.main_window.statusBar().clearMessage()
+        if not res:
+            QtGui.QMessageBox.critical(
+                self.main_window, 'Error',
+                'An error occured during apt-get install:\n\n%s' % msg
+            )
             return
-        finally:
-            main.mainWindow.statusBar().clearMessage()
 
-        QtGui.QMessageBox.information(main.mainWindow, 'Packages were installed',
-                'The packages were sucessfully installed:\n\n%s' % output)
+        QtGui.QMessageBox.information(self.main_window, 'Packages were installed',
+                'The packages were sucessfully installed:\n\n%s' % msg)
         return True
 
     def update_kconfig(self):
@@ -74,9 +117,13 @@ class Action(metaclass=ActionMeta):
         Copy a file
         """
 
-    def call(self, *args):
+    def call(self, args):
         "Run an external program."
-        subprocess.call(list(args))
+        subprocess.call(args)
+        try:
+            return True, subprocess.check_output(args)
+        except subprocess.CalledProcessError as exc:
+            return False, exc.output
 
     def request_kde_reload_config(self):
         # https://projects.kde.org/projects/kde/kde-workspace/repository/revisions/master/entry/kcontrol/style/kcmstyle.cpp
@@ -106,6 +153,9 @@ class Action(metaclass=ActionMeta):
         self.call('dbus-send', '--dest=org.kde.kwin', '/KWin', 'org.kde.KWin.reloadConfig')
 #        print('Restarting kwin')
 #        self.call("kwin", "--replace")
+
+    def proceed(self):
+        pass
 
 
 class ActionSet():

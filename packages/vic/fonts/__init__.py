@@ -21,10 +21,9 @@ class Action(Action):
     name = 'Droid fonts everywhere'
     description = "Custom fonts"
 
-    apt_packages_to_install = ['fonts-droid']
+    packages = ['fonts-droid']
 
     def proceed(self):
-        self.install_package('fonts-droid')
         self.update_kconfig('./kdeglobals', '~/.kde/share/config/kdeglobals')
         self.copy_file('./fonts.conf', '~/.config/fontconfig/')
         self.delete_file('~/.fonts.conf')  # or patch and then move it to:
@@ -34,3 +33,4 @@ class Action(Action):
 
     def override_font(self, font, override):
         """Add necessary nodes to fonts.conf """
+        raise NotImplemented

@@ -47,7 +47,10 @@ dict(id = 1, action = install, args = "qtcurve")
 }
 
 """
+
 from . import fonts
+
+
 class TestActionSet(ActionSet):
     name = 'test'
     description = 'test'

@@ -49,7 +49,7 @@ cur_dir = os.path.dirname(os.path.abspath(__file__))
 
 import importlib
 from pkgutil import iter_modules
-from packages import Action
+from scripts import Action
 
 
 def walk_modules(path):
@@ -186,11 +186,24 @@ def on_action_list_current_row_changed(index):
     main_window.web_view.setHtml(action.description)
 
 
+def on_proceed_button_clicked(checked=False):
+    actions = []
+    packages_to_install = []
+    for index in range(action_list_widget.count()):
+        action_item = action_list_widget.item(index)
+        if action_item.checkState() == QtCore.Qt.Checked:
+            action_class = action_item.data(QtCore.Qt.UserRole)
+            actions.append(action_class(main_window))
+            packages_to_install.extend(action_class.packages)
+    actions[0].install_packages(packages_to_install)
+
+
+
 main_window.package_combo.activated[int].connect(on_package_combo_activated)
 main_window.action_set_combo.activated[int].connect(on_action_set_combo_activated)
 main_window.action_list.itemChanged.connect(on_action_list_item_changed)
 main_window.action_list.currentRowChanged.connect(on_action_list_current_row_changed)
-#main_window.proceed_button.clicked.connect(lambda: install.install(unicode(mainWindow.themesComboBox.currentText())))
+main_window.proceed_button.clicked[bool].connect(on_proceed_button_clicked)
 main_window.proceed_button.setFocus(True)
 
 for _, module_name, _ in iter_modules(['packages']):
