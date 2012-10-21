@@ -97,10 +97,13 @@ def iter_classes(module, klass):
             yield obj
 
 
-MainWindowClass = uic.loadUiType(os.path.join(cur_dir, 'scripts', 'main_window.ui'))[0]
+FormClass, BaseClass = uic.loadUiType(
+    os.path.join(cur_dir, 'scripts', 'main_window.ui')
+)
+assert issubclass(BaseClass, QtGui.QMainWindow)
 
 
-class MainWindow(QtGui.QMainWindow, MainWindowClass):
+class MainWindow(QtGui.QMainWindow, FormClass):
 
     def __init__(self):
         super().__init__()
@@ -108,24 +111,97 @@ class MainWindow(QtGui.QMainWindow, MainWindowClass):
         # calling this creates all the widgets from the .ui file
         self.setupUi(self)
 
+    def print_message(self, message):
+        text_browser = self.textBrowser
+        tc = text_browser.textCursor()
+        tc.movePosition(QtGui.QTextCursor.End)
+        text_browser.setTextCursor(tc)
+        text_browser.insertHtml(message.replace('\n', '<br>') + '<hr>')
+        text_browser.ensureCursorVisible()  # scroll to the new message
+
     @QtCore.pyqtSlot()
-    def on_proceed_button_clicked(self, checked=False):
+    def on_proceedButton_clicked(self):
         actions = []
         packages_to_install = []
-        for index in range(action_list_widget.count()):
-            action_item = action_list_widget.item(index)
+        for index in range(main_window.actionList.count()):
+            action_item = main_window.actionList.item(index)
             if action_item.checkState() == QtCore.Qt.Checked:
                 action_class = action_item.data(QtCore.Qt.UserRole)
-                actions.append(action_class(main_window))
+                actions.append(action_class(self))
                 packages_to_install.extend(action_class.packages)
         actions[0].install_packages(packages_to_install)
         for action in actions:
             action.proceed()
 
+    @QtCore.pyqtSlot(int)
+    def on_packageCombo_activated(self, index):
+        self.actionList.clear()
+    
+        package_path = self.packageCombo.itemData(index)
+        all_actions = []
+        for module in walk_modules(package_path):
+            for action in iter_classes(module, Action):
+                item = QtGui.QListWidgetItem(action.name)
+                all_actions.append(action)
+                item.setFlags(QtCore.Qt.ItemIsSelectable | QtCore.Qt.ItemIsUserCheckable |
+                              QtCore.Qt.ItemIsEnabled)
+                item.setCheckState(QtCore.Qt.Checked)
+                item.setToolTip(action.description)
+    #            item.setStatusTip(action.description)
+                item.setData(QtCore.Qt.UserRole, action)
+                main_window.actionList.addItem(item)
+    
+        self.actionSetCombo.clear()
+    
+        class AllActionSet(ActionSet):
+            name = 'All'
+            description = 'All available actions'
+            actions = all_actions
+    
+        # default action sets
+        action_sets = [AllActionSet, NoneActionSet]
+        for action_set in iter_classes(importlib.import_module(package_path), ActionSet):
+            action_sets.append(action_set)
+        action_sets.append(CustomActionSet)  # at the end
+        for action_set in action_sets:
+            if action_set.actions is not None:
+                action_set.actions.sort()
+            self.actionSetCombo.addItem(action_set.name, action_set)
+        self.actionSetCombo.activated.emit(0)
+    
+    
+    @QtCore.pyqtSlot(int)
+    def on_actionSetCombo_activated(self, index):
+        action_set = self.actionSetCombo.itemData(index)
+    #    main_window.web_view.setHtml(main_window.actionSetCombo.itemText(index))
+        if action_set.actions is not None:  # not Custom
+            for index in range(main_window.actionList.count()):
+                item = main_window.actionList.item(index)
+                action = item.data(QtCore.Qt.UserRole)
+                check_state = QtCore.Qt.Checked if action in action_set.actions else QtCore.Qt.Unchecked
+                item.setCheckState(check_state)
+        main_window.actionList.setCurrentItem(None)  # reset selection
 
-main_window = MainWindow()
+    def on_actionList_itemChanged(self, item):
+        "Item checked/unchecked"
+        checked_actions = []
+        for index in range(main_window.actionList.count()):
+            action_item = main_window.actionList.item(index)
+            if action_item.checkState() == QtCore.Qt.Checked:
+                action = action_item.data(QtCore.Qt.UserRole)
+                checked_actions.append(action)
+        checked_actions.sort()
+        for index in range(self.actionSetCombo.count()):
+            if self.actionSetCombo.itemData(index).actions == checked_actions:
+                break
+        self.actionSetCombo.setCurrentIndex(index)
 
-action_list_widget = main_window.action_list
+    def on_actionList_currentRowChanged(self, index):
+        if index == -1:  # no row is selected
+            return
+        item = main_window.actionList.item(index)
+        action = item.data(QtCore.Qt.UserRole)
+        self.print_message(action.description)
 
 
 class NoneActionSet(ActionSet):
@@ -139,96 +215,13 @@ class CustomActionSet(ActionSet):
     description = 'Customly selected set'
     actions = None
 
-
-def on_package_combo_activated(index):
-    main_window.action_list.clear()
-
-    package_path = main_window.package_combo.itemData(index)
-    all_actions = []
-    for module in walk_modules(package_path):
-        for action in iter_classes(module, Action):
-            item = QtGui.QListWidgetItem(action.name)
-            all_actions.append(action)
-            item.setFlags(QtCore.Qt.ItemIsSelectable | QtCore.Qt.ItemIsUserCheckable |
-                          QtCore.Qt.ItemIsEnabled)
-            item.setCheckState(QtCore.Qt.Checked)
-            item.setToolTip(action.description)
-#            item.setStatusTip(action.description)
-            item.setData(QtCore.Qt.UserRole, action)
-            action_list_widget.addItem(item)
-
-    main_window.action_set_combo.clear()
-
-    class AllActionSet(ActionSet):
-        name = 'All'
-        description = 'All available actions'
-        actions = all_actions
-
-    # default action sets
-    action_sets = [AllActionSet, NoneActionSet]
-    for action_set in iter_classes(importlib.import_module(package_path), ActionSet):
-        action_sets.append(action_set)
-    action_sets.append(CustomActionSet)  # at the end
-    for action_set in action_sets:
-        if action_set.actions is not None:
-            action_set.actions.sort()
-        main_window.action_set_combo.addItem(action_set.name, action_set)
-    main_window.action_set_combo.activated.emit(0)
-
-
-def on_action_set_combo_activated(index):
-    action_set = main_window.action_set_combo.itemData(index)
-#    main_window.web_view.setHtml(main_window.action_set_combo.itemText(index))
-    if action_set.actions is not None:  # not Custom
-        for index in range(action_list_widget.count()):
-            item = action_list_widget.item(index)
-            action = item.data(QtCore.Qt.UserRole)
-            check_state = QtCore.Qt.Checked if action in action_set.actions else QtCore.Qt.Unchecked
-            item.setCheckState(check_state)
-    action_list_widget.setCurrentItem(None)  # reset selection
-
-
-def on_action_list_item_changed(item):
-    "Item checked/unchecked"
-    checked_actions = []
-    for index in range(action_list_widget.count()):
-        action_item = action_list_widget.item(index)
-        if action_item.checkState() == QtCore.Qt.Checked:
-            action = action_item.data(QtCore.Qt.UserRole)
-            checked_actions.append(action)
-    checked_actions.sort()
-    for index in range(main_window.action_set_combo.count()):
-        if main_window.action_set_combo.itemData(index).actions == checked_actions:
-            break
-    main_window.action_set_combo.setCurrentIndex(index)
-
-
-def on_action_list_current_row_changed(index):
-    if index == -1:  # no row is selected
-        return
-    item = action_list_widget.item(index)
-    action = item.data(QtCore.Qt.UserRole)
-#    main_window.web_view.setHtml(action.description)
-
-
-
-
-#ffmpeg = subprocess.Popen(['/usr/bin/ffmpeg', '-i', the_file], stderr=subprocess.STDOUT,stdout = subprocess.PIPE )
-#out, err = ffmpeg.communicate()
-#if "Duration" in out:
-#    print out[out.index("Duration"):].split()[1]        
         
-
-
-main_window.package_combo.activated[int].connect(on_package_combo_activated)
-main_window.action_set_combo.activated[int].connect(on_action_set_combo_activated)
-main_window.action_list.itemChanged.connect(on_action_list_item_changed)
-main_window.action_list.currentRowChanged.connect(on_action_list_current_row_changed)
-main_window.proceed_button.setFocus(True)
+main_window = MainWindow()
+main_window.proceedButton.setFocus(True)
 
 for _, module_name, _ in iter_modules(['packages']):
-    main_window.package_combo.addItem(module_name, 'packages.' + module_name)
-main_window.package_combo.activated.emit(0)
+    main_window.packageCombo.addItem(module_name, 'packages.' + module_name)
+main_window.packageCombo.activated.emit(0)
 
 main_window.show()
 app.exec()

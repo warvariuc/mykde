@@ -6,19 +6,22 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>775</width>
-    <height>560</height>
+    <width>773</width>
+    <height>558</height>
    </rect>
   </property>
   <property name="windowTitle">
    <string>My KDE</string>
   </property>
   <widget class="QWidget" name="centralwidget">
-   <layout class="QHBoxLayout" name="horizontalLayout">
+   <layout class="QVBoxLayout" name="verticalLayout">
     <item>
      <widget class="QSplitter" name="splitter">
       <property name="orientation">
        <enum>Qt::Horizontal</enum>
+      </property>
+      <property name="childrenCollapsible">
+       <bool>false</bool>
       </property>
       <widget class="QWidget" name="layoutWidget">
        <layout class="QGridLayout" name="gridLayout">
@@ -39,7 +42,7 @@
          </widget>
         </item>
         <item row="1" column="0" colspan="3">
-         <widget class="QComboBox" name="package_combo">
+         <widget class="QComboBox" name="packageCombo">
           <property name="sizePolicy">
            <sizepolicy hsizetype="MinimumExpanding" vsizetype="Fixed">
             <horstretch>0</horstretch>
@@ -68,7 +71,7 @@
          </widget>
         </item>
         <item row="3" column="0" colspan="3">
-         <widget class="QComboBox" name="action_set_combo">
+         <widget class="QComboBox" name="actionSetCombo">
           <property name="sizePolicy">
            <sizepolicy hsizetype="MinimumExpanding" vsizetype="Fixed">
             <horstretch>0</horstretch>
@@ -97,7 +100,7 @@
          </widget>
         </item>
         <item row="5" column="0" colspan="3">
-         <widget class="QListWidget" name="action_list">
+         <widget class="QListWidget" name="actionList">
           <property name="sizePolicy">
            <sizepolicy hsizetype="Preferred" vsizetype="Expanding">
             <horstretch>0</horstretch>
@@ -113,7 +116,7 @@
          </widget>
         </item>
         <item row="6" column="0">
-         <widget class="QPushButton" name="quit_buton">
+         <widget class="QPushButton" name="quitButton">
           <property name="sizePolicy">
            <sizepolicy hsizetype="Maximum" vsizetype="Fixed">
             <horstretch>0</horstretch>
@@ -142,7 +145,7 @@
          </spacer>
         </item>
         <item row="6" column="2">
-         <widget class="QPushButton" name="proceed_button">
+         <widget class="QPushButton" name="proceedButton">
           <property name="sizePolicy">
            <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
             <horstretch>0</horstretch>
@@ -159,7 +162,13 @@
         </item>
        </layout>
       </widget>
-      <widget class="QTextEdit" name="text_edit">
+      <widget class="QTextBrowser" name="textBrowser">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="MinimumExpanding" vsizetype="Expanding">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
        <property name="minimumSize">
         <size>
          <width>535</width>
@@ -176,7 +185,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>775</width>
+     <width>773</width>
      <height>25</height>
     </rect>
    </property>
@@ -186,7 +195,7 @@
  <resources/>
  <connections>
   <connection>
-   <sender>quit_buton</sender>
+   <sender>quitButton</sender>
    <signal>clicked()</signal>
    <receiver>MainWindow</receiver>
    <slot>close()</slot>

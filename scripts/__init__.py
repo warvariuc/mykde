@@ -40,14 +40,6 @@ class Action(metaclass = ActionMeta):
         assert isinstance(main_window, QtGui.QMainWindow)
         self.main_window = main_window
         
-    def print_message(self, message):
-        text_edit = self.main_window.text_edit
-        tc = text_edit.textCursor()
-        tc.movePosition(QtGui.QTextCursor.End)
-        text_edit.setTextCursor(tc)
-        text_edit.insertHtml(message)
-        text_edit.ensureCursorVisible() # scroll to the new message
-
     def install_trusted_public_keys(self, key_urls):
         assert isinstance(key_urls, (list, tuple))
         for url in key_urls:
@@ -60,12 +52,14 @@ class Action(metaclass = ActionMeta):
     def update_package_index(self):
         self.call('sudo apt-get update')
 
+    def print_message(self, message):
+        self.main_window.print_message(message)
+    
     def install_packages(self, package_names):
         """
         apt-get install packages, which are not yet installed
         @param package_names: list of package names to install
         """
-        # TODO: show a window with the list of required packages and their description
         assert isinstance(package_names, (list, tuple))
         packages = {package_name: None for package_name in package_names}
 
@@ -83,7 +77,8 @@ class Action(metaclass = ActionMeta):
                 packages[package_name] = apt_package.candidate.summary
 
         if not packages:
-            return True  # all required packages are installed
+            self.print_message('All required packages are already installed')
+            return True
 
         message = 'These additional packages must be installed:<ul>'
         for package_name, package_summary in packages.items():
@@ -100,16 +95,19 @@ class Action(metaclass = ActionMeta):
         window_id = self.main_window.effectiveWinId()
         comment = 'Install required packages'
         cmd = 'apt-get --assume-yes install %s' % ' '.join(packages)
-        res, msg = self.call(['kdesudo', '--comment', comment, '--attach', str(window_id), '-c', cmd])
+
+        res, msg = self.call(
+            ['kdesudo', '--comment', comment, '--attach', str(window_id), '-c', cmd]
+        )
         if not res:
             QtGui.QMessageBox.critical(
                 self.main_window, 'Error',
-                'An error occured during apt-get install:\n\n%s' % msg
+                'An error occured during apt-get install'
             )
             return
 
         QtGui.QMessageBox.information(self.main_window, 'Packages were installed',
-                'The packages were sucessfully installed:\n\n%s' % msg)
+                'The packages were sucessfully installed.')
         return True
 
     def update_kconfig(self):
@@ -126,9 +124,11 @@ class Action(metaclass = ActionMeta):
         "Run an external program."
         subprocess.call(args)
         try:
-            return True, subprocess.check_output(args)
+            res = True, subprocess.check_output(args)
         except subprocess.CalledProcessError as exc:
-            return False, exc.output
+            res = False, exc.output
+        finally:
+            self.main_window.print_message(str(res[1]))
 
     def request_kde_reload_config(self):
         # https://projects.kde.org/projects/kde/kde-workspace/repository/revisions/master/entry/kcontrol/style/kcmstyle.cpp
