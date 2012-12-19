@@ -1,26 +1,25 @@
 import subprocess
 import json
 import traceback
+import os
+import sys
+import time
 
+from distutils import dir_util, file_util
 import apt
-from PyQt4 import QtGui
+from PyQt4 import QtGui, QtCore
 from PyKDE4.kdecore import KConfig, KConfigGroup, KUrl
 from PyKDE4.kdeui import KGlobalSettings
 from PyKDE4.kio import KRun
 
 
-
-def debug_trace():
-    '''Set a tracepoint in the Python debugger that works with Qt'''
-    from PyQt4.QtCore import pyqtRemoveInputHook
-    from pdb import set_trace
-    pyqtRemoveInputHook()
-    set_trace()
+# disable PyQt input hook in order for ipdb to work
+QtCore.pyqtRemoveInputHook()
 
 
 class ActionMeta(type):
-    "Action metaclass to make Action sublclasses sortable."
-
+    """Action metaclass to make Action sublclasses sortable.
+    """
     def __lt__(self, other):
         return id(self) < id(other)
 
@@ -28,7 +27,7 @@ class ActionMeta(type):
         return id(self) == id(other)
 
 
-class Action(metaclass = ActionMeta):
+class Action(metaclass=ActionMeta):
 
     name = None
     description = "HTML description of the action"
@@ -39,7 +38,7 @@ class Action(metaclass = ActionMeta):
     def __init__(self, main_window):
         assert isinstance(main_window, QtGui.QMainWindow)
         self.main_window = main_window
-        
+
     def install_trusted_public_keys(self, key_urls):
         assert isinstance(key_urls, (list, tuple))
         for url in key_urls:
@@ -52,18 +51,19 @@ class Action(metaclass = ActionMeta):
     def update_package_index(self):
         self.call('sudo apt-get update')
 
-    def print_message(self, message):
-        self.main_window.print_message(message)
-    
+    def print_message(self, message, end='\n'):
+        self.main_window.print_message(message, end=end)
+
     def install_packages(self, package_names):
-        """
-        apt-get install packages, which are not yet installed
+        """apt-get install packages, which are not yet installed
         @param package_names: list of package names to install
         """
         assert isinstance(package_names, (list, tuple))
+        if not package_names:
+            self.print_message('No packages required to install.')
+            return
         packages = {package_name: None for package_name in package_names}
 
-        self.print_message('Checking if required packages are already installed...')
         apt_cache = apt.Cache()
         apt_cache.open()
         for package_name in list(packages.keys()):
@@ -84,56 +84,137 @@ class Action(metaclass = ActionMeta):
         for package_name, package_summary in packages.items():
             message += '<li><b>%s</b>: %s</li>' % (package_name, package_summary)
         message += '</ul>'
-        res = QtGui.QMessageBox.question(
-            self.main_window, 'Required packages', message,
-            QtGui.QMessageBox.Ok | QtGui.QMessageBox.Cancel, QtGui.QMessageBox.Ok
-        )
+        res = QtGui.QMessageBox.question(self.main_window, 'Required packages', message,
+                                         QtGui.QMessageBox.Ok | QtGui.QMessageBox.Cancel,
+                                         QtGui.QMessageBox.Ok)
         if res != QtGui.QMessageBox.Ok:
             return
 
-        self.print_message('Installing additional packages...')
-        window_id = self.main_window.effectiveWinId()
+        self.print_message('<>Installing additional packages:<hr>', end='')
         comment = 'Install required packages'
+        window_id = self.main_window.effectiveWinId()
         cmd = 'apt-get --assume-yes install %s' % ' '.join(packages)
+        self.print_message(cmd)
 
-        res, msg = self.call(
+        retcode, msg = self.call(
             ['kdesudo', '--comment', comment, '--attach', str(window_id), '-c', cmd]
         )
-        if not res:
-            QtGui.QMessageBox.critical(
-                self.main_window, 'Error',
-                'An error occured during apt-get install'
-            )
-            return
+        if retcode:
+            QtGui.QMessageBox.critical(self.main_window, 'Error',
+                                       'An error occured during apt-get install')
+            return False
 
+        self.print_message('<><hr>The packages were sucessfully installed.')
         QtGui.QMessageBox.information(self.main_window, 'Packages were installed',
                 'The packages were sucessfully installed.')
         return True
 
-    def update_kconfig(self):
+    def _get_abs_path(self, file_path):
+        file_path = os.path.expanduser(file_path)
+        if os.path.isabs(file_path):
+            return os.path.normpath(file_path)
+        module_dir = os.path.dirname(sys.modules[self.__class__.__module__].__file__)
+        file_path = os.path.join(module_dir, file_path)
+        file_path = os.path.abspath(file_path)
+        return file_path
+    
+    def update_kconfig(self, source_config_path, dest_config_path):
+        """Update a configuration file which is in format of kconfig
+        @param source_config_path: relative path to the source configuration file
+        @param dest_config_path: path to the file to apply patch to
         """
-        Update a configuration file which is in format of kconfig
-        """
+        assert isinstance(source_config_path, str)
+        assert isinstance(dest_config_path, str)
+        assert not os.path.isabs(source_config_path), 'The source should be relative'
+        source_config_path = self._get_abs_path(source_config_path)
+        assert os.path.isfile(source_config_path)
+        dest_config_path = self._get_abs_path(dest_config_path)
+        self.print_message('Updating configuration in `%s` from `%s`'
+                           % (dest_config_path, source_config_path))
 
-    def copy_file(self, src, dst):
-        """
-        Copy a file
-        """
+        # http://api.kde.org/4.0-api/kdelibs-apidocs/kdeui/html/classKGlobalSettings.html
+        # http://api.kde.org/4.x-api/kdelibs-apidocs/kdecore/html/classKConfig.html
+        # http://api.kde.org/4.x-api/kdelibs-apidocs/kdecore/html/classKConfigGroup.html
+        # https://projects.kde.org/projects/kde/kdebase/kde-runtime/repository/show/kreadconfig
+        def update_group(src_group, dst_group, bkp_group):
+            for entry_name, new_entry_value in src_group.entryMap().items():
+                if hasattr(dst_group, 'writeEntry'):
+                    old_entry_value = dst_group.readEntry(entry_name)
+                    dst_group.writeEntry(entry_name, new_entry_value)
+                    if new_entry_value != old_entry_value and old_entry_value:
+                        bkp_group.writeEntry(entry_name, old_entry_value)
+            for group_name in src_group.groupList():
+                update_group(src_group.group(group_name), dst_group.group(group_name),
+                             bkp_group.group(group_name))
 
-    def call(self, args):
-        "Run an external program."
-        subprocess.call(args)
-        try:
-            res = True, subprocess.check_output(args)
-        except subprocess.CalledProcessError as exc:
-            res = False, exc.output
-        finally:
-            self.main_window.print_message(str(res[1]))
+        src_cfg = KConfig(source_config_path, KConfig.NoGlobals)
+        dst_cfg = KConfig(dest_config_path, KConfig.NoGlobals)
+        bkp_cfg = KConfig('', KConfig.NoGlobals)  # we keep here original settings of dest
+
+        update_group(src_cfg, dst_cfg, bkp_cfg)
+        # update top level entries
+        update_group(src_cfg.group(''), dst_cfg.group(''), bkp_cfg)
+
+        dst_cfg.sync()  # save the current state of the configuration object
+
+#        if bkpCfgPath:
+#            bkp_cfg.sync()
+
+    def copy_file(self, src_path, dst_path, link=None):
+        """Copy a file.
+        If `src_path` is a file, `dst_path` must not be a directory, but a full file path.
+        If `src_path` is a directory, `dst_path` must be a directory path inside which  `src_path`
+        directory will be copied.
+        """
+        src_path = self._get_abs_path(src_path)
+        dst_path = self._get_abs_path(dst_path)
+        if not os.path.exists(src_path):
+            raise ValueError('Source path does not exist: %s' % src_path)
+        if os.path.isfile(src_path) or link:
+            dir_util.mkpath(os.path.dirname(dst_path))
+            file_util.copy_file(src_path, dst_path, link=link)
+        elif os.path.isdir(src_path):
+            dir_util.mkpath(dst_path)
+            dir_util.copy_tree(src_path, dst_path)
+        else:
+            raise ValueError('Source path is not file/directory: %s' % src_path)
+
+    def delete_file(self, file_path):
+        """Delete a file.
+        """
+        if not os.path.exists(file_path):
+            return
+        if os.path.isdir(file_path):
+            dir_util.remove_tree(file_path)
+        else:
+            os.remove(file_path)
+
+    def call(self, cmd):
+        """Run an external program.
+        """
+        self.print_message(cmd)
+        shell = isinstance(cmd, str)
+
+        process = subprocess.Popen(cmd, bufsize=1, close_fds=True, shell=shell,
+                                   stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+
+        output = []
+        while True:
+            time.sleep(0.1)
+            line = process.stdout.readline().decode('utf-8')
+            if not line:
+                break
+            output.append(line)
+            self.print_message(line, end='')
+
+        output = '\n'.join(output)
+        retcode = process.poll()
+        return retcode, output
 
     def request_kde_reload_config(self):
         # https://projects.kde.org/projects/kde/kde-workspace/repository/revisions/master/entry/kcontrol/style/kcmstyle.cpp
         kGlobalSettings = KGlobalSettings.self()
-        print('Notifying KDE apps about settings change.')
+        self.print_message('Notifying all KDE applications about the global settings change.')
         kGlobalSettings.emitChange(KGlobalSettings.StyleChanged)
         kGlobalSettings.emitChange(KGlobalSettings.SettingsChanged)
         kGlobalSettings.emitChange(KGlobalSettings.ToolbarStyleChanged)
@@ -146,16 +227,16 @@ class Action(metaclass = ActionMeta):
         self.request_plasma_reload_config()
 
     def request_plasma_reload_config(self):
-        print('Asking plasma to reload its config')
-        self.call('dbus-send', '--dest=org.kde.plasma-desktop', '/MainApplication',
-                  'org.kde.KApplication.reparseConfiguration')
+        self.print_message('Asking plasma to reload its config')
+        self.call(['dbus-send', '--dest=org.kde.plasma-desktop', '/MainApplication',
+                  'org.kde.KApplication.reparseConfiguration'])
 #        print('Restarting plasma')
 #        self.call('kquitapp', 'plasma-desktop')
 #        self.call('plasma-desktop')
 
     def request_kwin_reload_config(self):
-        print('Asking Kwin to reload its config')
-        self.call('dbus-send', '--dest=org.kde.kwin', '/KWin', 'org.kde.KWin.reloadConfig')
+        self.print_message('Asking Kwin to reload its config')
+        self.call(['dbus-send', '--dest=org.kde.kwin', '/KWin', 'org.kde.KWin.reloadConfig'])
 #        print('Restarting kwin')
 #        self.call("kwin", "--replace")
 
@@ -164,14 +245,16 @@ class Action(metaclass = ActionMeta):
 
 
 class ActionSet():
-    "Action set properties: description, actions contained in the set, etc."
+    """Action set properties: description, actions contained in the set, etc.
+    """
     name = ''
     description = ''  # html description
-    actions = []  # list of action names contained in this action set 
+    actions = []  # list of action names contained in this action set
 
 
 class ActionPackage():
-    "Action package properties: desription, author, etc."
+    """Action package properties: desription, author, etc.
+    """
     author = ''
     version = 0
     description = ''  # html description

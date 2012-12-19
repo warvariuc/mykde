@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+import html
 
 __author__ = "Victor Varvariuc <victor.varvariuc@gmail.com>"
 
@@ -11,6 +12,8 @@ if sys.version < python_required_version:
                      (python_required_version, sys.version))
 
 import subprocess
+import urllib
+
 from PyQt4 import QtCore, QtGui
 
 app = QtGui.QApplication(sys.argv)
@@ -100,7 +103,7 @@ def iter_classes(module, klass):
 FormClass, BaseClass = uic.loadUiType(
     os.path.join(cur_dir, 'scripts', 'main_window.ui')
 )
-assert issubclass(BaseClass, QtGui.QMainWindow)
+assert BaseClass is QtGui.QMainWindow
 
 
 class MainWindow(QtGui.QMainWindow, FormClass):
@@ -111,12 +114,15 @@ class MainWindow(QtGui.QMainWindow, FormClass):
         # calling this creates all the widgets from the .ui file
         self.setupUi(self)
 
-    def print_message(self, message):
+    def print_message(self, message, end='\n'):
         text_browser = self.textBrowser
         tc = text_browser.textCursor()
         tc.movePosition(QtGui.QTextCursor.End)
         text_browser.setTextCursor(tc)
-        text_browser.insertHtml(message.replace('\n', '<br>') + '<hr>')
+        message += end
+        if not message.startswith('<>'):
+            message = html.escape(message)
+        text_browser.insertHtml(message.replace('\n', '<br>'))
         text_browser.ensureCursorVisible()  # scroll to the new message
 
     @QtCore.pyqtSlot()
@@ -129,7 +135,9 @@ class MainWindow(QtGui.QMainWindow, FormClass):
                 action_class = action_item.data(QtCore.Qt.UserRole)
                 actions.append(action_class(self))
                 packages_to_install.extend(action_class.packages)
-        actions[0].install_packages(packages_to_install)
+        res = actions[0].install_packages(packages_to_install)
+        if not res:
+            self.print_message('<><b>Packages not installed. Not proceeding further with the actions.</b>')
         for action in actions:
             action.proceed()
 

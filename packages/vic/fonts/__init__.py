@@ -1,8 +1,9 @@
 import os
+
 from scripts import Action
 
 """
-If a font in the browser in not Droid, in Google Chrome right click on the text
+If a font in the browser is not Droid, in Google Chrome right click on the text
 with the wrong font, select 'Inspect element', find 'Computed style' and
 'font-family' in it:
 
@@ -25,10 +26,9 @@ class Action(Action):
 
     def proceed(self):
         self.update_kconfig('./kdeglobals', '~/.kde/share/config/kdeglobals')
-        self.copy_file('./fonts.conf', '~/.config/fontconfig/')
-        self.delete_file('~/.fonts.conf')  # or patch and then move it to:
-        self.copy_file('./fonts.conf', '~/.config/fontconfig/')
-        self.copy_file('./fonts.conf', '~/.fonts.conf')  # in 12.04 only this works
+        self.copy_file('./fonts.conf', '~/.config/fontconfig/fonts.conf')
+        self.delete_file('~/.fonts.conf')
+        self.copy_file('~/.config/fontconfig/fonts.conf', '~/.fonts.conf', link='sym')  # in 12.04 only this works
         self.request_kde_reload_config()
 
     def override_font(self, font, override):
