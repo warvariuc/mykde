@@ -139,7 +139,9 @@ class MainWindow(QtGui.QMainWindow, FormClass):
         if not res:
             self.print_message('<><b>Packages not installed. Not proceeding further with the actions.</b>')
         for action in actions:
+            self.print_message('<>Performing action <b>"%s"</b>' % action.name)
             action.proceed()
+            self.print_message('<>Finished action <b>"%s"</b>' % action.name)
 
     @QtCore.pyqtSlot(int)
     def on_packageCombo_activated(self, index):
@@ -181,6 +183,7 @@ class MainWindow(QtGui.QMainWindow, FormClass):
     @QtCore.pyqtSlot(int)
     def on_actionSetCombo_activated(self, index):
         action_set = self.actionSetCombo.itemData(index)
+        self.print_message('<>Action set <b>"%s"</b> was selected.' % action_set.name)
     #    main_window.web_view.setHtml(main_window.actionSetCombo.itemText(index))
         if action_set.actions is not None:  # not Custom
             for index in range(main_window.actionList.count()):
@@ -191,7 +194,12 @@ class MainWindow(QtGui.QMainWindow, FormClass):
         main_window.actionList.setCurrentItem(None)  # reset selection
 
     def on_actionList_itemChanged(self, item):
-        "Item checked/unchecked"
+        """Item checked/unchecked.
+        """
+        check_text = 'Checked' if item.checkState() == QtCore.Qt.Checked else 'Unchecked'
+        action = item.data(QtCore.Qt.UserRole)
+        self.print_message('<>%s action <b>"%s"</b>' % (check_text, action.name))
+        
         checked_actions = []
         for index in range(main_window.actionList.count()):
             action_item = main_window.actionList.item(index)
@@ -209,7 +217,8 @@ class MainWindow(QtGui.QMainWindow, FormClass):
             return
         item = main_window.actionList.item(index)
         action = item.data(QtCore.Qt.UserRole)
-        self.print_message(action.description)
+        self.print_message('<> Selected action <b>%s</b>:<blockquote>%s</blockquote>'
+                           % (action.name, action.description), end='')
 
 
 class NoneActionSet(ActionSet):

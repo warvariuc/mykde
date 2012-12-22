@@ -192,7 +192,8 @@ class Action(metaclass=ActionMeta):
     def call(self, cmd):
         """Run an external program.
         """
-        self.print_message(cmd)
+        assert isinstance(cmd, (str, tuple, list))
+        self.print_message(cmd if isinstance(cmd, str) else ' '.join(cmd))
         shell = isinstance(cmd, str)
 
         process = subprocess.Popen(cmd, bufsize=1, close_fds=True, shell=shell,
