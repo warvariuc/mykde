@@ -217,8 +217,8 @@ class MainWindow(QtGui.QMainWindow, FormClass):
             return
         item = main_window.actionList.item(index)
         action = item.data(QtCore.Qt.UserRole)
-        self.print_message('<> Selected action <b>%s</b>:<blockquote>%s</blockquote>'
-                           % (action.name, action.description), end='')
+        self.print_message('<>Selected action <b>%s</b>:<blockquote>%s</blockquote>'
+                           % (action.name, action.description))
 
 
 class NoneActionSet(ActionSet):
