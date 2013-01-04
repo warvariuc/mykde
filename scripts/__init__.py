@@ -5,8 +5,9 @@ import os
 import sys
 import time
 
-from distutils import dir_util, file_util
+import dbus
 import apt
+from distutils import dir_util, file_util
 from PyQt4 import QtGui, QtCore
 from PyKDE4.kdecore import KConfig, KConfigGroup, KUrl
 from PyKDE4.kdeui import KGlobalSettings
@@ -31,25 +32,65 @@ class Action(metaclass=ActionMeta):
 
     name = None
     description = "HTML description of the action"
-    trusted_public_keys = []  # public to keys to install for repositories
-    repositories = {}  # {repo_name: repo_url} repositories for installing packages
+    repositories = {}  # {repo_name: (repo_url, public_key_url)} repositories for installing packages
     packages = []  # list of package names to install
 
     def __init__(self, main_window):
         assert isinstance(main_window, QtGui.QMainWindow)
         self.main_window = main_window
 
-    def install_trusted_public_keys(self, key_urls):
-        assert isinstance(key_urls, (list, tuple))
-        for url in key_urls:
-            self.call('wget -q -O - %s | sudo apt-key add -' % url)
-
-    def add_repositories(self, repositories):
+    def install_repositories(self, repositories):
         assert isinstance(repositories, dict)
-        self.call("""sudo sh -c 'echo "deb http://dl.google.com/linux/chrome/deb/ stable main" >> /etc/apt/sources.list.d/google.list'""")
+        if not repositories:
+            self.print_message('No repositories required to install.')
+            return
 
-    def update_package_index(self):
-        self.call('sudo apt-get update')
+        commands = []
+        # check if file exists
+        for repo_name, (repo_url, public_key_url) in repositories.items():
+            assert isinstance(repo_name, str)
+            assert isinstance(repo_url, str)
+            assert isinstance(public_key_url, str)
+            repo_path = os.path.join('/etc/apt/sources.list.d/', repo_name)
+            if os.path.isfile(repo_path):
+                with open(repo_path) as repo_file:
+                    if repo_url in repo_file.read().splitlines():
+                        # URL is already there, do not add this repo
+                        continue
+            # install public key
+            commands.append('wget --quiet --output-document=- %s | sudo apt-key add -'
+                            % public_key_url)
+            # add repo to the list of repos
+            commands.append('echo "%s" >> %s' % (repo_url, repo_path))
+
+        if not commands:
+            self.print_message('All required repositories are already installed')
+            return True
+
+        commands.append('apt-get update')
+        command = "sudo sh -c '%s'" % '\n'.join(commands)
+#        self.open_konsole(command)
+        comment = 'Install additional repositories'
+        window_id = self.main_window.effectiveWinId()
+
+        retcode, msg = self.call(
+            ['kdesudo', '--comment', comment, '--attach', str(window_id), '-c', command]
+        )
+        if retcode:
+            QtGui.QMessageBox.critical(self.main_window, 'Error',
+                                       'An error occured during apt-get install')
+            return False
+
+        return True
+
+    def open_konsole(self, text):
+        """Open a Konsole and type text in it.
+        """
+        bus = dbus.SessionBus()
+        konsole = bus.get_object('org.kde.konsole', '/Konsole')
+        session_id = dbus.Interface(konsole, 'org.kde.konsole.Window').newSession()
+        session = bus.get_object('org.kde.konsole', '/Sessions/%s' % session_id)
+        session.sendText(text)
 
     def print_message(self, message, end='\n'):
         self.main_window.print_message(message, end=end)
@@ -117,7 +158,7 @@ class Action(metaclass=ActionMeta):
         file_path = os.path.join(module_dir, file_path)
         file_path = os.path.abspath(file_path)
         return file_path
-    
+
     def update_kconfig(self, source_config_path, dest_config_path):
         """Update a configuration file which is in format of kconfig
         @param source_config_path: relative path to the source configuration file
@@ -190,7 +231,7 @@ class Action(metaclass=ActionMeta):
             os.remove(file_path)
 
     def call(self, cmd):
-        """Run an external program.
+        """Run a program.
         """
         assert isinstance(cmd, (str, tuple, list))
         self.print_message(cmd if isinstance(cmd, str) else ' '.join(cmd))
@@ -229,19 +270,17 @@ class Action(metaclass=ActionMeta):
 
     def request_plasma_reload_config(self):
         self.print_message('Asking plasma to reload its config')
-        self.call(['dbus-send', '--dest=org.kde.plasma-desktop', '/MainApplication',
-                  'org.kde.KApplication.reparseConfiguration'])
-#        print('Restarting plasma')
-#        self.call('kquitapp', 'plasma-desktop')
-#        self.call('plasma-desktop')
+        plasma = dbus.SessionBus().get_object('org.kde.plasma-desktop', '/MainApplication')
+        dbus.Interface(plasma, 'org.kde.KApplication').reparseConfiguration()
 
     def request_kwin_reload_config(self):
         self.print_message('Asking Kwin to reload its config')
-        self.call(['dbus-send', '--dest=org.kde.kwin', '/KWin', 'org.kde.KWin.reloadConfig'])
-#        print('Restarting kwin')
-#        self.call("kwin", "--replace")
+        kwin = dbus.SessionBus().get_object('org.kde.kwin', '/MainApplication')
+        dbus.Interface(kwin, 'org.kde.KApplication').reparseConfiguration()
 
     def proceed(self):
+        """To be reimplemented in subclasses.
+        """
         pass
 
 

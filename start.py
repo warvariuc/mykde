@@ -6,17 +6,20 @@ __author__ = "Victor Varvariuc <victor.varvariuc@gmail.com>"
 import os
 import sys
 
-python_required_version = '3.2' # tested with this version or later
+python_required_version = '3.2'  # tested with this version or later
 if sys.version < python_required_version:
     raise SystemExit('Python %s or newer required (you are using: %s).' %
                      (python_required_version, sys.version))
 
+
 import subprocess
-import urllib
 
-from PyQt4 import QtCore, QtGui
+from PyQt4 import QtCore, QtGui, uic
 
+
+cur_dir = os.path.dirname(os.path.abspath(__file__))
 app = QtGui.QApplication(sys.argv)
+
 
 def error(title, message):
     def show_error():
@@ -25,6 +28,7 @@ def error(title, message):
     QtCore.QTimer.singleShot(0, show_error)
     app.exec()
     sys.exit(1)
+
 
 if os.geteuid() == 0:  # root privileges
     error('Root detected', 'Do not run this script as root.\n'
@@ -40,19 +44,12 @@ if distro_id != 'ubuntu':
 distro_release_id = subprocess.check_output(['lsb_release', '--short', '--release'])
 distro_release_id = distro_release_id.decode().strip()
 if distro_id < '12.10':
-    error('Wrong release', 'Need Ubuntu 12.10 or younger.')
-
-
-from PyQt4 import uic
-from scripts import webview, ActionSet
-
-cur_dir = os.path.dirname(os.path.abspath(__file__))
-
+    error('Wrong release', 'Need Ubuntu 12.10 or later.')
 
 
 import importlib
 from pkgutil import iter_modules
-from scripts import Action
+from scripts import ActionSet, Action
 
 
 def walk_modules(path):
@@ -75,7 +72,7 @@ def walk_modules(path):
     return modules
 
 
-def get_object_by_path(object_path, package_path = None):
+def get_object_by_path(object_path, package_path=None):
     """
     Given the path in form 'some.module.object' return the object.
     @param object_path: path to an object
@@ -83,7 +80,7 @@ def get_object_by_path(object_path, package_path = None):
         should be given.
     """
     module_path, sep, object_name = object_path.rpartition('.')
-    if not sep: # '.' not present - only object name is given in the path
+    if not sep:  # '.' not present - only object name is given in the path
         assert package_path, "You've given the object name, but haven't specified the module " \
             "in which i can find it. " + object_path
         (object_name, module_path, package_path) = (object_path, package_path, None)
@@ -124,20 +121,33 @@ class MainWindow(QtGui.QMainWindow, FormClass):
             message = html.escape(message)
         text_browser.insertHtml(message.replace('\n', '<br>'))
         text_browser.ensureCursorVisible()  # scroll to the new message
+        QtGui.QApplication.processEvents()
 
     @QtCore.pyqtSlot()
     def on_proceedButton_clicked(self):
         actions = []
-        packages_to_install = []
+        packages = []
+        repositories = {}  # repositories to add
         for index in range(main_window.actionList.count()):
             action_item = main_window.actionList.item(index)
             if action_item.checkState() == QtCore.Qt.Checked:
                 action_class = action_item.data(QtCore.Qt.UserRole)
                 actions.append(action_class(self))
-                packages_to_install.extend(action_class.packages)
-        res = actions[0].install_packages(packages_to_install)
+                packages.extend(action_class.packages)
+                repositories.update(action_class.repositories)
+        # add new repositories
+        res = actions[0].install_repositories(repositories)
         if not res:
-            self.print_message('<><b>Packages not installed. Not proceeding further with the actions.</b>')
+            self.print_message('<><b style="color:red">Not all repositories installed. '
+                               'Not proceeding further.</b>')
+            return
+        # install missing packages
+        res = actions[0].install_packages(packages)
+        if not res:
+            self.print_message('<><b style="color:red">Not all packages installed. '
+                               'Not proceeding further.</b>')
+            return
+        # perform the actions
         for action in actions:
             self.print_message('<>Performing action <b>"%s"</b>' % action.name)
             action.proceed()
@@ -146,7 +156,7 @@ class MainWindow(QtGui.QMainWindow, FormClass):
     @QtCore.pyqtSlot(int)
     def on_packageCombo_activated(self, index):
         self.actionList.clear()
-    
+
         package_path = self.packageCombo.itemData(index)
         all_actions = []
         for module in walk_modules(package_path):
@@ -160,14 +170,14 @@ class MainWindow(QtGui.QMainWindow, FormClass):
     #            item.setStatusTip(action.description)
                 item.setData(QtCore.Qt.UserRole, action)
                 main_window.actionList.addItem(item)
-    
+
         self.actionSetCombo.clear()
-    
+
         class AllActionSet(ActionSet):
             name = 'All'
             description = 'All available actions'
             actions = all_actions
-    
+
         # default action sets
         action_sets = [AllActionSet, NoneActionSet]
         for action_set in iter_classes(importlib.import_module(package_path), ActionSet):
@@ -178,8 +188,8 @@ class MainWindow(QtGui.QMainWindow, FormClass):
                 action_set.actions.sort()
             self.actionSetCombo.addItem(action_set.name, action_set)
         self.actionSetCombo.activated.emit(0)
-    
-    
+
+
     @QtCore.pyqtSlot(int)
     def on_actionSetCombo_activated(self, index):
         action_set = self.actionSetCombo.itemData(index)
@@ -199,7 +209,7 @@ class MainWindow(QtGui.QMainWindow, FormClass):
         check_text = 'Checked' if item.checkState() == QtCore.Qt.Checked else 'Unchecked'
         action = item.data(QtCore.Qt.UserRole)
         self.print_message('<>%s action <b>"%s"</b>' % (check_text, action.name))
-        
+
         checked_actions = []
         for index in range(main_window.actionList.count()):
             action_item = main_window.actionList.item(index)
@@ -232,7 +242,7 @@ class CustomActionSet(ActionSet):
     description = 'Customly selected set'
     actions = None
 
-        
+
 main_window = MainWindow()
 main_window.proceedButton.setFocus(True)
 
