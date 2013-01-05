@@ -80,7 +80,6 @@ class Action(metaclass=ActionMeta):
 
         self.print_message('<><b style="color:yellow">Installing additional repositories:</b>')
 
-        commands.append('apt-get update')
         command = "sudo sh -c '%s'" % '\n'.join(commands)
 #        self.open_konsole(command)
         comment = 'Install additional repositories'
@@ -140,10 +139,14 @@ class Action(metaclass=ActionMeta):
         self.print_message('<><b style="color:yellow">Installing additional packages:</b>')
         comment = 'Install required packages'
         window_id = self.main_window.effectiveWinId()
-        cmd = 'apt-get --assume-yes install %s' % ' '.join(packages)
+        commands = [
+            'apt-get update',
+            'apt-get --assume-yes install %s' % ' '.join(packages)
+        ]
+        command = "sudo sh -c '%s'" % '\n'.join(commands)
 
         retcode, msg = self.call(
-            ['kdesudo', '--comment', comment, '--attach', str(window_id), '-c', cmd]
+            ['kdesudo', '--comment', comment, '--attach', str(window_id), '-c', command]
         )
         if retcode:
             self.print_message('<><b style="color:red">An error happened during packages '
