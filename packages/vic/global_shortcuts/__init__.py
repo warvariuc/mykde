@@ -6,8 +6,8 @@ class Action(Action):
     name = "Global keyboard shortcuts"
     description = """\
 <ul>
-    <li>Meta + L - Lock screen</li>
-    <li>Meta + D - Show desktop</li>
+    <li><kbd>Meta+L</kbd> - Lock screen</li>
+    <li><kbd>Meta+D</kbd> - Show desktop</li>
 </ul>
 """
     

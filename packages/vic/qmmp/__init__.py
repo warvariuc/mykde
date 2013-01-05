@@ -8,4 +8,4 @@ class Action(Action):
     packages = ['qmmp']
 
     def proceed(self):
-        self.copy_files('./.qmmp', '~/')
+        self.copy_file('./.qmmp', '~/')

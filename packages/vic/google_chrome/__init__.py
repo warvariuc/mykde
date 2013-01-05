@@ -14,3 +14,7 @@ Google Chrome has out of the box support for proprietary audio/video codesc, Ado
                         'https://dl-ssl.google.com/linux/linux_signing_key.pub')
     }
     packages = ['google-chrome-stable']
+
+    def proceed(self):
+        self.update_kconfig('./kdeglobals',
+                            '~/.kde/share/config/kdeglobals')

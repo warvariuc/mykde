@@ -31,6 +31,7 @@ class ActionMeta(type):
 class Action(metaclass=ActionMeta):
 
     name = None
+    # http://doc.qt.digia.com/qt/richtext-html-subset.html
     description = "HTML description of the action"
     repositories = {}  # {repo_name: (repo_url, public_key_url)} repositories for installing packages
     packages = []  # list of package names to install
@@ -38,6 +39,18 @@ class Action(metaclass=ActionMeta):
     def __init__(self, main_window):
         assert isinstance(main_window, QtGui.QMainWindow)
         self.main_window = main_window
+
+    def open_konsole(self, text):
+        """Open a Konsole and type text in it.
+        """
+        bus = dbus.SessionBus()
+        konsole = bus.get_object('org.kde.konsole', '/Konsole')
+        session_id = dbus.Interface(konsole, 'org.kde.konsole.Window').newSession()
+        session = bus.get_object('org.kde.konsole', '/Sessions/%s' % session_id)
+        session.sendText(text)
+
+    def print_message(self, message, end='\n'):
+        self.main_window.print_message(message, end=end)
 
     def install_repositories(self, repositories):
         assert isinstance(repositories, dict)
@@ -61,8 +74,11 @@ class Action(metaclass=ActionMeta):
             commands.append('echo "%s" >> %s' % (repo_url, repo_path))
 
         if not commands:
-            self.print_message('All required repositories are already installed')
+            self.print_message('<><b style="color:green">All required repositories are already '
+                               'installed</b>')
             return True
+
+        self.print_message('<><b style="color:yellow">Installing additional repositories:</b>')
 
         commands.append('apt-get update')
         command = "sudo sh -c '%s'" % '\n'.join(commands)
@@ -74,23 +90,15 @@ class Action(metaclass=ActionMeta):
             ['kdesudo', '--comment', comment, '--attach', str(window_id), '-c', command]
         )
         if retcode:
+            self.print_message('<><b style="color:red">An error happened during installation of '
+                               'repositories.</b>')
             QtGui.QMessageBox.critical(self.main_window, 'Error',
                                        'An error occured during apt-get install')
             return False
 
+        self.print_message('<><b style="color:green">The repositories were sucessfully '
+                           'installed.</b>')
         return True
-
-    def open_konsole(self, text):
-        """Open a Konsole and type text in it.
-        """
-        bus = dbus.SessionBus()
-        konsole = bus.get_object('org.kde.konsole', '/Konsole')
-        session_id = dbus.Interface(konsole, 'org.kde.konsole.Window').newSession()
-        session = bus.get_object('org.kde.konsole', '/Sessions/%s' % session_id)
-        session.sendText(text)
-
-    def print_message(self, message, end='\n'):
-        self.main_window.print_message(message, end=end)
 
     def install_packages(self, package_names):
         """apt-get install packages, which are not yet installed
@@ -99,7 +107,7 @@ class Action(metaclass=ActionMeta):
         assert isinstance(package_names, (list, tuple))
         if not package_names:
             self.print_message('No packages required to install.')
-            return
+            return True
         packages = {package_name: None for package_name in package_names}
 
         apt_cache = apt.Cache()
@@ -115,7 +123,8 @@ class Action(metaclass=ActionMeta):
                 packages[package_name] = apt_package.candidate.summary
 
         if not packages:
-            self.print_message('All required packages are already installed')
+            self.print_message('<><b style="color:green">All required packages are already '
+                               'installed</b>')
             return True
 
         message = 'These additional packages must be installed:<ul>'
@@ -126,9 +135,9 @@ class Action(metaclass=ActionMeta):
                                          QtGui.QMessageBox.Ok | QtGui.QMessageBox.Cancel,
                                          QtGui.QMessageBox.Ok)
         if res != QtGui.QMessageBox.Ok:
-            return
+            return False
 
-        self.print_message('<>Installing additional packages:<hr/>', end='')
+        self.print_message('<><b style="color:yellow">Installing additional packages:</b>')
         comment = 'Install required packages'
         window_id = self.main_window.effectiveWinId()
         cmd = 'apt-get --assume-yes install %s' % ' '.join(packages)
@@ -137,13 +146,15 @@ class Action(metaclass=ActionMeta):
             ['kdesudo', '--comment', comment, '--attach', str(window_id), '-c', cmd]
         )
         if retcode:
+            self.print_message('<><b style="color:red">An error happened during packages '
+                               'installation.</b>')
             QtGui.QMessageBox.critical(self.main_window, 'Error',
                                        'An error occured during apt-get install')
             return False
 
-        self.print_message('<><hr/>The packages were sucessfully installed.')
-        QtGui.QMessageBox.information(self.main_window, 'Packages were installed',
-                'The packages were sucessfully installed.')
+        self.print_message('<><b style="color:green">The packages were sucessfully installed.</b>')
+#        QtGui.QMessageBox.information(self.main_window, 'Packages were installed',
+#                'The packages were sucessfully installed.')
         return True
 
     def _get_abs_path(self, file_path):
@@ -231,22 +242,27 @@ class Action(metaclass=ActionMeta):
         """
         assert isinstance(cmd, (str, tuple, list))
         shell = isinstance(cmd, str)
-        self.print_message(cmd if shell else ' '.join(cmd))
+        self.print_message('<><code style="background-color:#CCC">%s</code>'
+                           % (cmd if shell else subprocess.list2cmdline(cmd)))
 
         process = subprocess.Popen(cmd, bufsize=1, close_fds=True, shell=shell,
                                    stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
 
         output = []
         while True:
-            QtGui.QApplication.processEvents()
-            time.sleep(0.1)
+#            time.sleep(0.1)
+#            char = process.stdout.read().decode('utf-8')
+#            if not char:
+#                break
+#            output += char
             line = process.stdout.readline().decode('utf-8')
             if not line:
                 break
             output.append(line)
             self.print_message(line, end='')
+            QtGui.QApplication.processEvents()
 
-        output = '\n'.join(output)
+#        output = '\n'.join(output)
         retcode = process.poll()
         return retcode, output
 
