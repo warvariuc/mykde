@@ -153,6 +153,10 @@ class MainWindow(QtGui.QMainWindow, FormClass):
             action.proceed()
             self.print_message('<>Finished action <b>"%s"</b>' % action.name)
 
+        # reload KDE configuration
+        actions[0].request_kde_reload_config()
+
+
     @QtCore.pyqtSlot(int)
     def on_packageCombo_activated(self, index):
         self.actionList.clear()
