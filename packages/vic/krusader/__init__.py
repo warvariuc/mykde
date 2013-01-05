@@ -5,7 +5,6 @@ class Action(Action):
 
     name = 'Krusader'
     description = "Krusader with custom settings"
-    
     packages = ['krusader', 'kompare']
 
     def proceed(self):

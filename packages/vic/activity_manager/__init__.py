@@ -7,4 +7,13 @@ class Action(Action):
     description = "Prevent running KDE activity manager"
     
     def proceed(self):
-        pass # self.call('# chmod -x /usr/bin/kactivitymanagerd')
+        command = 'chmod -x /usr/bin/kactivitymanagerd'
+        window_id = self.main_window.effectiveWinId()
+
+        retcode, msg = self.call(
+            ['kdesudo', '--comment', self.name, '--attach', str(window_id), '-c', command]
+        )
+        if retcode:
+#            QtGui.QMessageBox.critical(self.main_window, 'Error',
+#                                       'An error occured during apt-get install')
+            return False

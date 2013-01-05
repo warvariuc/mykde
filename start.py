@@ -163,8 +163,8 @@ class MainWindow(QtGui.QMainWindow, FormClass):
             for action in iter_classes(module, Action):
                 item = QtGui.QListWidgetItem(action.name)
                 all_actions.append(action)
-                item.setFlags(QtCore.Qt.ItemIsSelectable | QtCore.Qt.ItemIsUserCheckable |
-                              QtCore.Qt.ItemIsEnabled)
+                item.setFlags(QtCore.Qt.ItemIsSelectable | QtCore.Qt.ItemIsUserCheckable
+                              | QtCore.Qt.ItemIsEnabled)
                 item.setCheckState(QtCore.Qt.Checked)
                 item.setToolTip(action.description)
     #            item.setStatusTip(action.description)

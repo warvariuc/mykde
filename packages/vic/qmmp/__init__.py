@@ -5,7 +5,6 @@ class Action(Action):
 
     name = "Qmmp"
     description = "Qmmp with custom settings"
-    
     packages = ['qmmp']
 
     def proceed(self):

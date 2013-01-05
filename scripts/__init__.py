@@ -41,9 +41,6 @@ class Action(metaclass=ActionMeta):
 
     def install_repositories(self, repositories):
         assert isinstance(repositories, dict)
-        if not repositories:
-            self.print_message('No repositories required to install.')
-            return
 
         commands = []
         # check if file exists
@@ -131,11 +128,10 @@ class Action(metaclass=ActionMeta):
         if res != QtGui.QMessageBox.Ok:
             return
 
-        self.print_message('<>Installing additional packages:<hr>', end='')
+        self.print_message('<>Installing additional packages:<hr/>', end='')
         comment = 'Install required packages'
         window_id = self.main_window.effectiveWinId()
         cmd = 'apt-get --assume-yes install %s' % ' '.join(packages)
-        self.print_message(cmd)
 
         retcode, msg = self.call(
             ['kdesudo', '--comment', comment, '--attach', str(window_id), '-c', cmd]
@@ -145,7 +141,7 @@ class Action(metaclass=ActionMeta):
                                        'An error occured during apt-get install')
             return False
 
-        self.print_message('<><hr>The packages were sucessfully installed.')
+        self.print_message('<><hr/>The packages were sucessfully installed.')
         QtGui.QMessageBox.information(self.main_window, 'Packages were installed',
                 'The packages were sucessfully installed.')
         return True
@@ -234,14 +230,15 @@ class Action(metaclass=ActionMeta):
         """Run a program.
         """
         assert isinstance(cmd, (str, tuple, list))
-        self.print_message(cmd if isinstance(cmd, str) else ' '.join(cmd))
         shell = isinstance(cmd, str)
+        self.print_message(cmd if shell else ' '.join(cmd))
 
         process = subprocess.Popen(cmd, bufsize=1, close_fds=True, shell=shell,
                                    stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
 
         output = []
         while True:
+            QtGui.QApplication.processEvents()
             time.sleep(0.1)
             line = process.stdout.readline().decode('utf-8')
             if not line:
