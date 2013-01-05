@@ -1,6 +1,4 @@
 #!/usr/bin/env python3
-import html
-
 __author__ = "Victor Varvariuc <victor.varvariuc@gmail.com>"
 
 import os
@@ -48,7 +46,9 @@ if distro_id < '12.10':
 
 
 import importlib
+import html
 from pkgutil import iter_modules
+
 from scripts import ActionSet, Action
 
 
@@ -113,13 +113,16 @@ class MainWindow(QtGui.QMainWindow, FormClass):
 
     def print_message(self, message, end='\n'):
         text_browser = self.textBrowser
-        tc = text_browser.textCursor()
-        tc.movePosition(QtGui.QTextCursor.End)
-        text_browser.setTextCursor(tc)
-        message += end
+        cursor = text_browser.textCursor()
+        cursor.movePosition(QtGui.QTextCursor.End)
+        text_browser.setTextCursor(cursor)
         if not message.startswith('<>'):
-            message = html.escape(message)
-        text_browser.insertHtml(message.replace('\n', '<br>'))
+            message = html.escape(message + end).replace('\n', '<br>')
+        else:
+            if end == '\n':
+                end = '<br>'
+            message += end
+        text_browser.insertHtml(message)
         text_browser.ensureCursorVisible()  # scroll to the new message
         QtGui.QApplication.processEvents()
 

@@ -180,7 +180,7 @@ class Action(metaclass=ActionMeta):
         source_config_path = self._get_abs_path(source_config_path)
         assert os.path.isfile(source_config_path)
         dest_config_path = self._get_abs_path(dest_config_path)
-        self.print_message('Updating configuration in `%s` from `%s`'
+        self.print_message('<>Updating configuration in <code>%s</code> from <code>%s</code>.'
                            % (dest_config_path, source_config_path))
 
         # http://api.kde.org/4.0-api/kdelibs-apidocs/kdeui/html/classKGlobalSettings.html
@@ -217,6 +217,8 @@ class Action(metaclass=ActionMeta):
         If `src_path` is a directory, `dst_path` must be a directory path inside which  `src_path`
         directory will be copied.
         """
+        self.print_message('<>Copying file from <code>%s</code> to <code>%s</code>.'
+                           % (src_path, dst_path))
         src_path = self._get_abs_path(src_path)
         dst_path = self._get_abs_path(dst_path)
         if not os.path.exists(src_path):
@@ -272,7 +274,8 @@ class Action(metaclass=ActionMeta):
     def request_kde_reload_config(self):
         # https://projects.kde.org/projects/kde/kde-workspace/repository/revisions/master/entry/kcontrol/style/kcmstyle.cpp
         kGlobalSettings = KGlobalSettings.self()
-        self.print_message('Notifying all KDE applications about the global settings change.')
+        self.print_message('<><b style="color:green">Notifying all KDE applications about the '
+                           'global settings change.</b>')
         kGlobalSettings.emitChange(KGlobalSettings.StyleChanged)
         kGlobalSettings.emitChange(KGlobalSettings.SettingsChanged)
         kGlobalSettings.emitChange(KGlobalSettings.ToolbarStyleChanged)
@@ -283,6 +286,7 @@ class Action(metaclass=ActionMeta):
 
         self.request_kwin_reload_config()
         self.request_plasma_reload_config()
+        self.request_global_accel_reload_config()
 
     def request_plasma_reload_config(self):
         self.print_message('Asking plasma to reload its config')
@@ -293,6 +297,12 @@ class Action(metaclass=ActionMeta):
         self.print_message('Asking Kwin to reload its config')
         kwin = dbus.SessionBus().get_object('org.kde.kwin', '/MainApplication')
         dbus.Interface(kwin, 'org.kde.KApplication').reparseConfiguration()
+
+    def request_global_accel_reload_config(self):
+        self.print_message('Asking global shortcuts manager to reload its config')
+        dbus.Interface(dbus.SessionBus().get_object('org.kde.kglobalaccel', '/MainApplication'),
+                       'org.kde.KApplication').reparseConfiguration()
+#        self.call('kquitapp kglobalaccel && sleep 2s && kglobalaccel &')
 
     def proceed(self):
         """To be reimplemented in subclasses.
@@ -314,3 +324,26 @@ class ActionPackage():
     author = ''
     version = 0
     description = ''  # html description
+
+
+def dump_args(func):
+    """Decorator to print function call details - parameter names and passed/effective values.
+    """
+
+    def wrapper(*func_args, **func_kwargs):
+
+        arg_names = func.func_code.co_varnames[:func.func_code.co_argcount]
+        args = func_args[:len(arg_names)]
+        if func.func_defaults:
+            args = args + func.func_defaults[len(func.func_defaults) - func.func_code.co_argcount + len(args):]
+        params = zip(arg_names, args)
+        args = func_args[len(arg_names):]
+        if args:
+            params.append(('*', args))
+        if func_kwargs:
+            params.append(('**', func_kwargs))
+        print('{} ( {} )'.format(func.func_name, ', '.join(map('{0[0]!s} = {0[1]!r}'.format, params))))
+
+        return func(*func_args, **func_kwargs)
+
+    return wrapper
