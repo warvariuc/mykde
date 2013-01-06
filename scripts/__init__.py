@@ -80,7 +80,7 @@ class Action(metaclass=ActionMeta):
 
         self.print_message('<><b style="color:#B08000">Installing additional repositories:</b>')
 
-        command = "sudo sh -c '%s'" % '\n'.join(commands)
+        command = '\n'.join(commands)
 #        self.open_konsole(command)
         retcode = self.kdesudo(command, 'Install additional repositories')
         if retcode:
