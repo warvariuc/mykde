@@ -27,6 +27,7 @@ Author of installation scripts and package compilation: <a href="mailto:victor.v
 
 xnview - unpack to ~/apps/ and create .desktop file in Graphics category
 clip2net
+galaxy icons libreoffice, enter behavior calc
 """
 
 from . import fonts

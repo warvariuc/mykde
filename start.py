@@ -164,9 +164,10 @@ class MainWindow(QtGui.QMainWindow, FormClass):
 
         # reload KDE configuration
         actions[0].request_kde_reload_config()
-        self.print_message('<><b style="color:green">Finished package installation. Some effects '
-                           'will be seen only after KDE session restart.</b>')
-
+        self.print_message(
+            '<><b style="background-color:green;color:white">Finished package installation.<br>'
+            'Some effects could be seen only after you restart your KDE session.</b>'
+        )
 
     @QtCore.pyqtSlot(int)
     def on_packageCombo_activated(self, index):

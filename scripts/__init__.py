@@ -102,7 +102,7 @@ class Action(metaclass=ActionMeta):
         if not package_names:
             self.print_message('No packages required to install.')
             return True
-        
+
         self.print_message('<><b style="color:#B08000">Updating package index:</b>')
         retcode = self.kdesudo('apt-get update', 'Updating package index')
         if retcode:
@@ -112,7 +112,7 @@ class Action(metaclass=ActionMeta):
 
         self.print_message('<><b style="color:green">The package index was sucessfully '
                            'updated.</b>')
-        
+
         packages = {package_name: None for package_name in package_names}
 
         apt_cache = apt.Cache()
@@ -262,11 +262,11 @@ class Action(metaclass=ActionMeta):
         """Run a program.
         """
         assert isinstance(cmd, (str, tuple, list))
-        shell = isinstance(cmd, str)
-        self.print_message('<><code style="background-color:#CCC">%s</code>'
-                           % (cmd if shell else subprocess.list2cmdline(cmd)))
+        if isinstance(cmd, (tuple, list)):
+            cmd = subprocess.list2cmdline(cmd)
+        self.print_message('<><code style="background-color:#CCC">%s</code>' % cmd)
 
-        process = subprocess.Popen(cmd, bufsize=1, close_fds=True, shell=shell,
+        process = subprocess.Popen(cmd, bufsize=1, close_fds=True, shell=True,
                                    stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
 
         output = []
