@@ -241,7 +241,7 @@ class Action(metaclass=ActionMeta):
                            % (dst_path, src_path))
         if not os.path.exists(src_path):
             raise ValueError('Source path does not exist: %s' % src_path)
-        if os.path.exists():
+        if os.path.exists(dst_path):
             self.delete_file(dst_path)
         os.symlink(src_path, dst_path)
 
