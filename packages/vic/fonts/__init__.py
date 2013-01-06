@@ -26,9 +26,9 @@ class Action(Action):
 
     def proceed(self):
         self.update_kconfig('./kdeglobals', '~/.kde/share/config/kdeglobals')
-        self.copy_file('./fonts.conf', '~/.config/fontconfig/fonts.conf')
+        self.copy_file('./fonts.conf', '~/.config/fontconfig/')
         self.delete_file('~/.fonts.conf')
-        self.copy_file('~/.config/fontconfig/fonts.conf', '~/.fonts.conf', link='sym')  # in 12.04 only this works
+        self.create_symlink('~/.config/fontconfig/fonts.conf', '~/.fonts.conf')  # in 12.04 only this works
 
     def override_font(self, font, override):
         """Add necessary nodes to fonts.conf """

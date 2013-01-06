@@ -16,6 +16,7 @@ from PyQt4 import QtCore, QtGui, uic
 
 
 cur_dir = os.path.dirname(os.path.abspath(__file__))
+os.chdir(cur_dir)
 app = QtGui.QApplication(sys.argv)
 
 
@@ -158,6 +159,8 @@ class MainWindow(QtGui.QMainWindow, FormClass):
 
         # reload KDE configuration
         actions[0].request_kde_reload_config()
+        self.print_message('<><b style="color:green">Finished package installation. Some effects '
+                           'will be seen only after KDE session restart.</b>')
 
 
     @QtCore.pyqtSlot(int)
@@ -255,7 +258,9 @@ main_window.proceedButton.setFocus(True)
 
 for _, module_name, _ in iter_modules(['packages']):
     main_window.packageCombo.addItem(module_name, 'packages.' + module_name)
-main_window.packageCombo.activated.emit(0)
+
+if main_window.packageCombo.count():
+    main_window.packageCombo.activated.emit(0)
 
 main_window.show()
 app.exec()

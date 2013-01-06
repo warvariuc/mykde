@@ -211,31 +211,46 @@ class Action(metaclass=ActionMeta):
 #        if bkpCfgPath:
 #            bkp_cfg.sync()
 
-    def copy_file(self, src_path, dst_path, link=None):
-        """Copy a file.
-        If `src_path` is a file, `dst_path` must not be a directory, but a full file path.
-        If `src_path` is a directory, `dst_path` must be a directory path inside which  `src_path`
-        directory will be copied.
+    def copy_file(self, src_path, dst_dir_path):
+        """Copy a file/directory to another directory.
+        @param src_path: path of the file/directory to copy
+        @param dst_dir_path: path of the destination directory
         """
-        self.print_message('<>Copying file from <code>%s</code> to <code>%s</code>.'
-                           % (src_path, dst_path))
         src_path = self._get_abs_path(src_path)
-        dst_path = self._get_abs_path(dst_path)
+        dst_dir_path = self._get_abs_path(dst_dir_path)
+        self.print_message('<>Copying file <code>%s</code> to <code>%s</code>.'
+                           % (src_path, dst_dir_path))
         if not os.path.exists(src_path):
             raise ValueError('Source path does not exist: %s' % src_path)
-        if os.path.isfile(src_path) or link:
-            dir_util.mkpath(os.path.dirname(dst_path))
-            file_util.copy_file(src_path, dst_path, link=link)
-        elif os.path.isdir(src_path):
+        file_name = os.path.split(src_path)[1]
+        dst_path = os.path.join(dst_dir_path, file_name)
+        if os.path.isdir(src_path):
             dir_util.copy_tree(src_path, dst_path)
         else:
-            raise ValueError('Source path is not file/directory: %s' % src_path)
+            dir_util.mkpath(dst_dir_path)
+            file_util.copy_file(src_path, dst_path)
+
+    def create_symlink(self, src_path, dst_path):
+        """Create a symlink.
+        @param src_path: path of the file/directory to which the created symlink will point
+        @param dst_path: path of the symbolic link to create
+        """
+        src_path = self._get_abs_path(src_path)
+        dst_path = self._get_abs_path(dst_path)
+        self.print_message('<>Creating symbolic link <code>%s</code> to <code>%s</code>.'
+                           % (dst_path, src_path))
+        if not os.path.exists(src_path):
+            raise ValueError('Source path does not exist: %s' % src_path)
+        if os.path.exists():
+            self.delete_file(dst_path)
+        os.symlink(src_path, dst_path)
 
     def delete_file(self, file_path):
         """Delete a file.
         """
         if not os.path.exists(file_path):
             return
+        self.print_message('<>Deleting file <code>%s</code>.' % file_path)
         if os.path.isdir(file_path):
             dir_util.remove_tree(file_path)
         else:
@@ -301,7 +316,7 @@ class Action(metaclass=ActionMeta):
         self.print_message('Asking global shortcuts manager to reload its config')
 #        dbus.Interface(dbus.SessionBus().get_object('org.kde.kglobalaccel', '/MainApplication'),
 #                       'org.kde.KApplication').reparseConfiguration()
-        subprocess.call('kquitapp kglobalaccel && sleep 2s && kglobalaccel &')
+        subprocess.call('kquitapp kglobalaccel && sleep 2s && kglobalaccel &', shell=True)
 
     def proceed(self):
         """To be reimplemented in subclasses.

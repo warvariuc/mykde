@@ -8,6 +8,6 @@ class Action(Action):
 
     def proceed(self):
         self.copy_file('./Produkt/',
-                       '~/.kde/share/apps/desktoptheme/Produkt/')
+                       '~/.kde/share/apps/desktoptheme/')
         self.update_kconfig('./plasmarc',
-                            '~/.kde/share/config/plasmarc')
+                            '~/.kde/share/config/')
