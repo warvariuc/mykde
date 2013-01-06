@@ -227,7 +227,6 @@ class Action(metaclass=ActionMeta):
             dir_util.mkpath(os.path.dirname(dst_path))
             file_util.copy_file(src_path, dst_path, link=link)
         elif os.path.isdir(src_path):
-            dir_util.mkpath(dst_path)
             dir_util.copy_tree(src_path, dst_path)
         else:
             raise ValueError('Source path is not file/directory: %s' % src_path)
@@ -300,9 +299,9 @@ class Action(metaclass=ActionMeta):
 
     def request_global_accel_reload_config(self):
         self.print_message('Asking global shortcuts manager to reload its config')
-        dbus.Interface(dbus.SessionBus().get_object('org.kde.kglobalaccel', '/MainApplication'),
-                       'org.kde.KApplication').reparseConfiguration()
-#        self.call('kquitapp kglobalaccel && sleep 2s && kglobalaccel &')
+#        dbus.Interface(dbus.SessionBus().get_object('org.kde.kglobalaccel', '/MainApplication'),
+#                       'org.kde.KApplication').reparseConfiguration()
+        subprocess.call('kquitapp kglobalaccel && sleep 2s && kglobalaccel &')
 
     def proceed(self):
         """To be reimplemented in subclasses.

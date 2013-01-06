@@ -7,7 +7,7 @@ class Action(Action):
     description = "Custom widget (QtCurve) and color themes."
 
     def proceed(self):
-        self.copy_file('./Produkt',
-                       '~/.kde/share/apps/desktoptheme/')
+        self.copy_file('./Produkt/',
+                       '~/.kde/share/apps/desktoptheme/Produkt/')
         self.update_kconfig('./plasmarc',
                             '~/.kde/share/config/plasmarc')
