@@ -12,7 +12,7 @@ Other useful applications:
     <li>KolourPaint</li>
 </ul>
 """
-    packages = ['p7zip-full', 'speedcrunch', 'kolourpaint4', 'pavucontrol']
+    packages = ['p7zip-full', 'speedcrunch', 'kolourpaint4', 'pavucontrol', 'overlay-scrollbar']
 
     def proceed(self):
         pass

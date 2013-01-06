@@ -82,12 +82,7 @@ class Action(metaclass=ActionMeta):
 
         command = "sudo sh -c '%s'" % '\n'.join(commands)
 #        self.open_konsole(command)
-        comment = 'Install additional repositories'
-        window_id = self.main_window.effectiveWinId()
-
-        retcode, msg = self.call(
-            ['kdesudo', '--comment', comment, '--attach', str(window_id), '-c', command]
-        )
+        retcode = self.kdesudo(command, 'Install additional repositories')
         if retcode:
             self.print_message('<><b style="color:red">An error happened during installation of '
                                'repositories.</b>')
@@ -107,6 +102,17 @@ class Action(metaclass=ActionMeta):
         if not package_names:
             self.print_message('No packages required to install.')
             return True
+        
+        self.print_message('<><b style="color:#B08000">Updating package index:</b>')
+        retcode = self.kdesudo('apt-get update', 'Updating package index')
+        if retcode:
+            self.print_message('<><b style="color:red">An error happened while updating package '
+                               'index .</b>')
+            return False
+
+        self.print_message('<><b style="color:green">The package index was sucessfully '
+                           'updated.</b>')
+        
         packages = {package_name: None for package_name in package_names}
 
         apt_cache = apt.Cache()
@@ -137,17 +143,8 @@ class Action(metaclass=ActionMeta):
             return False
 
         self.print_message('<><b style="color:#B08000">Installing additional packages:</b>')
-        comment = 'Install required packages'
-        window_id = self.main_window.effectiveWinId()
-        commands = [
-            'apt-get update',
-            'apt-get --assume-yes install %s' % ' '.join(packages)
-        ]
-        command = "sudo sh -c '%s'" % '\n'.join(commands)
-
-        retcode, msg = self.call(
-            ['kdesudo', '--comment', comment, '--attach', str(window_id), '-c', command]
-        )
+        retcode = self.kdesudo('apt-get --assume-yes install %s' % ' '.join(packages),
+                               'Install required packages')
         if retcode:
             self.print_message('<><b style="color:red">An error happened during packages '
                                'installation.</b>')
@@ -159,6 +156,11 @@ class Action(metaclass=ActionMeta):
 #        QtGui.QMessageBox.information(self.main_window, 'Packages were installed',
 #                'The packages were sucessfully installed.')
         return True
+
+    def kdesudo(self, command, comment):
+        retcode, msg = self.call(['kdesudo', '--comment', comment, '--attach',
+                                  str(self.main_window.effectiveWinId()), '-c', command])
+        return retcode
 
     def _get_abs_path(self, file_path):
         file_path = os.path.expanduser(file_path)
