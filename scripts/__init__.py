@@ -78,7 +78,7 @@ class Action(metaclass=ActionMeta):
                                'installed</b>')
             return True
 
-        self.print_message('<><b style="color:yellow">Installing additional repositories:</b>')
+        self.print_message('<><b style="color:#B08000">Installing additional repositories:</b>')
 
         command = "sudo sh -c '%s'" % '\n'.join(commands)
 #        self.open_konsole(command)
@@ -136,7 +136,7 @@ class Action(metaclass=ActionMeta):
         if res != QtGui.QMessageBox.Ok:
             return False
 
-        self.print_message('<><b style="color:yellow">Installing additional packages:</b>')
+        self.print_message('<><b style="color:#B08000">Installing additional packages:</b>')
         comment = 'Install required packages'
         window_id = self.main_window.effectiveWinId()
         commands = [

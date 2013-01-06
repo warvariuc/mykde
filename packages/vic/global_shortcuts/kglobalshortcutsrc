@@ -3,3 +3,4 @@ Lock Session=Meta+L,Ctrl+Alt+L,Lock Session
 
 [kwin]
 Show Desktop=Meta+D,none,Show Desktop
+Switch Focus Right=,Meta+L,Switch Focus Right

@@ -10,4 +10,4 @@ class Action(Action):
         self.copy_file('./Produkt/',
                        '~/.kde/share/apps/desktoptheme/')
         self.update_kconfig('./plasmarc',
-                            '~/.kde/share/config/')
+                            '~/.kde/share/config/plasmarc')

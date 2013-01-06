@@ -154,8 +154,13 @@ class MainWindow(QtGui.QMainWindow, FormClass):
         # perform the actions
         for action in actions:
             self.print_message('<>Performing action <b>"%s"</b>' % action.name)
-            action.proceed()
-            self.print_message('<>Finished action <b>"%s"</b>' % action.name)
+            try:
+                action.proceed()
+            except Exception as exc:
+                self.print_message('<><span style="color:red"><b>Error:</b> %s</span>' % exc)
+            else:
+                self.print_message('<>Finished action <b style="color:green">"%s"</b>'
+                                   % action.name)
 
         # reload KDE configuration
         actions[0].request_kde_reload_config()
