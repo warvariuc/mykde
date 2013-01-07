@@ -153,7 +153,7 @@ class Action(metaclass=ActionMeta):
                                        'An error occured during apt-get install')
             return False
 
-        self.print_message('<><b style="color:green">The packages were sucessfully installed.</b>')
+        self.print_message('<><b style="color:green">The packages were successfully installed.</b>')
 #        QtGui.QMessageBox.information(self.main_window, 'Packages were installed',
 #                'The packages were sucessfully installed.')
         return True
