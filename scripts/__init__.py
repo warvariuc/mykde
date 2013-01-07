@@ -266,7 +266,7 @@ class Action(metaclass=ActionMeta):
             cmd = subprocess.list2cmdline(cmd)
         self.print_message('<><code style="background-color:#CCC">%s</code>' % cmd)
 
-        process = subprocess.Popen(cmd, bufsize=1, close_fds=True, shell=True,
+        process = subprocess.Popen(cmd, bufsize=0, close_fds=True, shell=True,
                                    stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
 
         output = []
@@ -311,8 +311,9 @@ class Action(metaclass=ActionMeta):
 
     def request_kwin_reload_config(self):
         self.print_message('Asking Kwin to reload its config')
-        kwin = dbus.SessionBus().get_object('org.kde.kwin', '/MainApplication')
-        dbus.Interface(kwin, 'org.kde.KApplication').reparseConfiguration()
+#        kwin = dbus.SessionBus().get_object('org.kde.kwin', '/MainApplication')
+#        dbus.Interface(kwin, 'org.kde.KApplication').reparseConfiguration()
+        subprocess.call('kwin --replace &', shell=True)
 
     def request_global_accel_reload_config(self):
         self.print_message('Asking global shortcuts manager to reload its config')

@@ -27,4 +27,4 @@ Using mykde
 Enter `mykde` directory and launch `start.py` (clicking on it or from command line
 `./start.py`).
 Select a package (currently only `vic` available), check the actions you want to
-proceed with and click `Install`
+proceed with and click `Proceed`
