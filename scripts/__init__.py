@@ -159,7 +159,7 @@ class Action(metaclass=ActionMeta):
         return True
 
     def kdesudo(self, command, comment):
-        retcode, msg = self.call(['kdesudo', '--comment', comment, '--attach',
+        retcode, msg = self.call(['kdesudo', '-n', '--comment', comment, '--attach',
                                   str(self.main_window.effectiveWinId()), '-c', command])
         return retcode
 
