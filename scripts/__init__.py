@@ -134,7 +134,7 @@ class Action(metaclass=ActionMeta):
             return True
 
         message = 'These additional packages must be installed:<ul>'
-        for package_name, package_summary in packages.items():
+        for package_name, package_summary in sorted(packages.items()):
             message += '<li><b>%s</b>: %s</li>' % (package_name, package_summary)
         message += '</ul>'
         res = QtGui.QMessageBox.question(self.main_window, 'Required packages', message,
@@ -159,8 +159,7 @@ class Action(metaclass=ActionMeta):
         return True
 
     def kdesudo(self, command, comment):
-        retcode, msg = self.call(['kdesudo', '-n', '--comment', comment, '--attach',
-                                  str(self.main_window.effectiveWinId()), '-c', command])
+        retcode, msg = self.call(['kdesudo', '--comment', comment, '-c', command])
         return retcode
 
     def _get_abs_path(self, file_path):
