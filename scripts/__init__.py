@@ -31,6 +31,7 @@ class ActionMeta(type):
 class Action(metaclass=ActionMeta):
 
     name = None
+    author = ''
     # http://doc.qt.digia.com/qt/richtext-html-subset.html
     description = "HTML description of the action"
     repositories = {}  # {repo_name: (repo_url, public_key_url)} repositories for installing packages
