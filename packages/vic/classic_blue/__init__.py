@@ -16,4 +16,5 @@ lines as possible - to make it visually light.
         self.copy_file('./classic_blue.colors', '~/.kde/share/apps/color-schemes/')
         self.update_kconfig('./stylerc', '~/.config/qtcurve/stylerc')
         self.update_kconfig('./kwinrc', '~/.kde/share/config/kwinrc')
+        self.update_kconfig('./kwinqtcurverc', '~/.kde/share/config/kwinqtcurverc')
         self.update_kconfig('./kdeglobals', '~/.kde/share/config/kdeglobals')
