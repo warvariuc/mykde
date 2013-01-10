@@ -78,6 +78,10 @@ class MainWindow(QtGui.QMainWindow, FormClass):
         # uic adds a function to our class called setupUi
         # calling this creates all the widgets from the .ui file
         self.setupUi(self)
+        self.splitter.setStretchFactor(0, 0)
+        self.splitter.setStretchFactor(1, 1)
+        self.setWindowIcon(QtGui.QIcon('scripts/icon.png'))
+        self.print_message('<><h3 style="color:blue">Welcome to the KDE transformer!</h3>')
 
     def print_message(self, message, end='\n'):
         text_browser = self.textBrowser
@@ -210,7 +214,7 @@ class MainWindow(QtGui.QMainWindow, FormClass):
             return
         item = main_window.actionList.item(index)
         action = item.data(QtCore.Qt.UserRole)
-        self.print_message('<>Selected action <b>%s</b>:<blockquote>%s</blockquote>'
+        self.print_message('<>About action <b>%s</b>:<blockquote>%s</blockquote>'
                            % (action.name, action.description))
 
 

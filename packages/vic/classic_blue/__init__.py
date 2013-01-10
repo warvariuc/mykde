@@ -7,7 +7,9 @@ class Action(Action):
     author = 'Victor Varvariuc'
     description = """\
 Custom widget (QtCurve) and color themes. I tried to make the QtCurve theme to contain is little
-lines as possible - to make it visually light.
+lines as possible - to make it visually light.<br>
+<br>
+<img src="screenshot.png"/>
 """
     packages = ['qtcurve', 'fonts-droid']
 

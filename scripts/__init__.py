@@ -4,6 +4,7 @@ import traceback
 import os
 import sys
 import time
+import re
 
 import dbus
 import apt
@@ -21,6 +22,17 @@ QtCore.pyqtRemoveInputHook()
 class ActionMeta(type):
     """Action metaclass to make Action sublclasses sortable.
     """
+    def __new__(cls, name, bases, attrs):
+        action = type.__new__(cls, name, bases, attrs)
+        # convert relative paths of img tags to absolute
+        def make_abs_path(match):
+            return '<img src="%s"/>' % action.get_abs_path(match.group(1))
+        action.description = re.sub(r'<\s*img\s+src\s*=\s*"([^"]+)"\s*/>', make_abs_path,
+                                    action.description)
+
+        return action
+    
+    
     def __lt__(self, other):
         return id(self) < id(other)
 
@@ -162,11 +174,12 @@ class Action(metaclass=ActionMeta):
         retcode, msg = self.call(['kdesudo', '--comment', comment, '-c', command])
         return retcode
 
-    def _get_abs_path(self, file_path):
+    @classmethod
+    def get_abs_path(cls, file_path):
         file_path = os.path.expanduser(file_path)
         if os.path.isabs(file_path):
             return os.path.normpath(file_path)
-        module_dir = os.path.dirname(sys.modules[self.__class__.__module__].__file__)
+        module_dir = os.path.dirname(sys.modules[cls.__module__].__file__)
         file_path = os.path.join(module_dir, file_path)
         file_path = os.path.abspath(file_path)
         return file_path
@@ -179,9 +192,9 @@ class Action(metaclass=ActionMeta):
         assert isinstance(source_config_path, str)
         assert isinstance(dest_config_path, str)
         assert not os.path.isabs(source_config_path), 'The source should be relative'
-        source_config_path = self._get_abs_path(source_config_path)
+        source_config_path = self.get_abs_path(source_config_path)
         assert os.path.isfile(source_config_path)
-        dest_config_path = self._get_abs_path(dest_config_path)
+        dest_config_path = self.get_abs_path(dest_config_path)
         self.print_message('<>Updating configuration in <code>%s</code> from <code>%s</code>.'
                            % (dest_config_path, source_config_path))
 
@@ -218,8 +231,8 @@ class Action(metaclass=ActionMeta):
         @param src_path: path of the file/directory to copy
         @param dst_dir_path: path of the destination directory
         """
-        src_path = self._get_abs_path(src_path)
-        dst_dir_path = self._get_abs_path(dst_dir_path)
+        src_path = self.get_abs_path(src_path)
+        dst_dir_path = self.get_abs_path(dst_dir_path)
         self.print_message('<>Copying file <code>%s</code> to <code>%s</code>.'
                            % (src_path, dst_dir_path))
         if not os.path.exists(src_path):
@@ -237,8 +250,8 @@ class Action(metaclass=ActionMeta):
         @param src_path: path of the file/directory to which the created symlink will point
         @param dst_path: path of the symbolic link to create
         """
-        src_path = self._get_abs_path(src_path)
-        dst_path = self._get_abs_path(dst_path)
+        src_path = self.get_abs_path(src_path)
+        dst_path = self.get_abs_path(dst_path)
         self.print_message('<>Creating symbolic link <code>%s</code> to <code>%s</code>.'
                            % (dst_path, src_path))
         if not os.path.exists(src_path):

@@ -5,7 +5,9 @@ class Action(Action):
 
     name = "Hycons icons"
     description = """\
-http://kde-look.org/content/show.php/?content=101767
+<a href="http://kde-look.org/content/show.php/?content=101767">Hycons icons</a><br>
+<br>
+<img src="screenshot.png"/>
 """
     packages = ['qtcurve', 'fonts-droid']
 

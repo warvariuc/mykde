@@ -4,7 +4,11 @@ from scripts import Action
 class Action(Action):
 
     name = "Produkt Plasma theme"
-    description = "Custom widget (QtCurve) and color themes."
+    description = """\
+<a href="http://kde-look.org/content/show.php/?content=124213">Produkt Plasma theme</a><br>
+<br>
+<img src="screenshot.png"/>
+"""
 
     def proceed(self):
         self.copy_file('./Produkt/',
