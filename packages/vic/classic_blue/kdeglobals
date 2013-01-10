@@ -99,6 +99,3 @@ activeFont=Droid Sans,10,-1,5,50,0,0,0,0,0
 activeForeground=1,1,1
 inactiveBackground=224,223,222
 inactiveForeground=75,71,67
-
-[Icons]
-Theme=Hycons
