@@ -153,7 +153,7 @@ class MainWindow(QtGui.QMainWindow, FormClass):
                 item.setFlags(QtCore.Qt.ItemIsSelectable | QtCore.Qt.ItemIsUserCheckable
                               | QtCore.Qt.ItemIsEnabled)
                 item.setCheckState(QtCore.Qt.Checked)
-                item.setToolTip(action.description)
+                item.setToolTip('<div>' + action.description + '</div>')
     #            item.setStatusTip(action.description)
                 item.setData(QtCore.Qt.UserRole, action)
                 main_window.actionList.addItem(item)

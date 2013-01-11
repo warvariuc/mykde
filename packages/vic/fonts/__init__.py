@@ -24,7 +24,8 @@ class Action(Action):
 Droid fonts are used everywhere possible, because they render very nice.<br>
 In browser they should replace Verdana, Arial and other MS fonts.<br>
 <br>
-<img src="screenshot.png"/>"""
+<img src="screenshot.png"/>
+"""
 
     packages = ['fonts-droid']
 
