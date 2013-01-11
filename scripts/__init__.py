@@ -1,4 +1,4 @@
-__version__= '0.9.0'
+__version__ = '0.9.0'
 __author__ = 'Victor Varvariuc<victor.varvariuc@gmail.com>'
 
 import subprocess
@@ -27,15 +27,16 @@ class ActionMeta(type):
     """
     def __new__(cls, name, bases, attrs):
         action = type.__new__(cls, name, bases, attrs)
-        # convert relative paths of img tags to absolute
+
         def make_abs_path(match):
             return '<img src="%s"/>' % action.get_abs_path(match.group(1))
+
+        # convert relative paths of img tags to absolute
         action.description = re.sub(r'<\s*img\s+src\s*=\s*"([^"]+)"\s*/>', make_abs_path,
                                     action.description)
 
         return action
-    
-    
+
     def __lt__(self, other):
         return id(self) < id(other)
 
