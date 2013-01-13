@@ -81,7 +81,14 @@ class MainWindow(QtGui.QMainWindow, FormClass):
         self.splitter.setStretchFactor(0, 0)
         self.splitter.setStretchFactor(1, 1)
         self.setWindowIcon(QtGui.QIcon('scripts/icon.png'))
+        # open URL in the default KDE browser
+        self.textBrowser.setOpenExternalLinks(True)
         self.print_message('<><h3 style="color:blue">Welcome to the KDE transformer!</h3>')
+
+    @QtCore.pyqtSlot(str)
+    def on_textBrowser_highlighted(self, url):
+        # show link URL in the status bar when cursor is over it
+        self.statusBar().showMessage(url)
 
     def print_message(self, message, end='\n'):
         text_browser = self.textBrowser
@@ -97,6 +104,15 @@ class MainWindow(QtGui.QMainWindow, FormClass):
         text_browser.insertHtml(message)
         text_browser.ensureCursorVisible()  # scroll to the new message
         QtGui.QApplication.processEvents()
+
+    @QtCore.pyqtSlot()
+    def on_aboutButton_clicked(self):
+        self.print_message("""<>\
+<hr><div style="background-color:green;color:white;font:bold large">
+"My KDE" transformer. Author Victor Varvariuc.<br>
+<a href="https://github.com/warvariuc/mykde" style="color:white">Program page here.</a>
+</div><hr>
+""")
 
     @QtCore.pyqtSlot()
     def on_proceedButton_clicked(self):

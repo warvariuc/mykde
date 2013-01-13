@@ -44,6 +44,6 @@ try:
     import PyQt4
     import PyKDE4
 except ImportError:
-    show_error('PyQt4/PyKDE4', 'PyQt4/PyKDE4 packages not available')
+    show_error('PyQt4/PyKDE4', 'PyQt4/PyKDE4 libraries are not available')
 
 import scripts.main

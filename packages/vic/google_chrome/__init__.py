@@ -5,8 +5,17 @@ class GoogleChrome(Action):
 
     name = "Google Chrome"
     description = """\
-Google Chrome has out of the box support for proprietary audio/video codesc, Adobe Flash, PDF support.<br>
-<a href="http://code.google.com/p/chromium/wiki/ChromiumBrowserVsGoogleChrome">Differences between Google Chrome and Linux distro Chromium </a>
+Google Chrome has out of the box support for:
+<ul>
+    <li>proprietary audio/video codecs</li>
+    <li>Adobe Flash</li>
+    <li>PDF</li>
+</ul>
+<a href="http://code.google.com/p/chromium/wiki/ChromiumBrowserVsGoogleChrome">
+    Differences between Google Chrome and Linux distro Chromium
+</a>
+<br>
+<img src="screenshot.png"/>
 """
 
     repositories = {

@@ -13,9 +13,8 @@ import dbus
 import apt
 from distutils import dir_util, file_util
 from PyQt4 import QtGui, QtCore
-from PyKDE4.kdecore import KConfig, KConfigGroup, KUrl
+from PyKDE4.kdecore import KConfig
 from PyKDE4.kdeui import KGlobalSettings
-from PyKDE4.kio import KRun
 
 
 # disable PyQt input hook in order for ipdb to work
@@ -28,8 +27,13 @@ class ActionMeta(type):
     def __new__(cls, name, bases, attrs):
         action = type.__new__(cls, name, bases, attrs)
 
+        action.action_dir = os.path.dirname(sys.modules[action.__module__].__file__)
+
         def make_abs_path(match):
-            return '<img src="%s"/>' % action.get_abs_path(match.group(1))
+            img_abs_path = action.make_abs_path(match.group(1))
+            if not os.path.exists(img_abs_path):
+                print('Description image file does not exist: %s' % img_abs_path)
+            return '<img src="%s"/>' % img_abs_path
 
         # convert relative paths of img tags to absolute
         action.description = re.sub(r'<\s*img\s+src\s*=\s*"([^"]+)"\s*/>', make_abs_path,
@@ -52,6 +56,8 @@ class Action(metaclass=ActionMeta):
     description = "HTML description of the action"
     repositories = {}  # {repo_name: (repo_url, public_key_url)} repositories for installing packages
     packages = []  # list of package names to install
+
+    action_dir = None  # directory of the action class to compute absolute paths in description
 
     def __init__(self, main_window):
         assert isinstance(main_window, QtGui.QMainWindow)
@@ -179,12 +185,11 @@ class Action(metaclass=ActionMeta):
         return retcode
 
     @classmethod
-    def get_abs_path(cls, file_path):
+    def make_abs_path(cls, file_path):
         file_path = os.path.expanduser(file_path)
         if os.path.isabs(file_path):
             return os.path.normpath(file_path)
-        module_dir = os.path.dirname(sys.modules[cls.__module__].__file__)
-        file_path = os.path.join(module_dir, file_path)
+        file_path = os.path.join(cls.action_dir, file_path)
         file_path = os.path.abspath(file_path)
         return file_path
 
@@ -196,9 +201,9 @@ class Action(metaclass=ActionMeta):
         assert isinstance(source_config_path, str)
         assert isinstance(dest_config_path, str)
         assert not os.path.isabs(source_config_path), 'The source should be relative'
-        source_config_path = self.get_abs_path(source_config_path)
+        source_config_path = self.make_abs_path(source_config_path)
         assert os.path.isfile(source_config_path)
-        dest_config_path = self.get_abs_path(dest_config_path)
+        dest_config_path = self.make_abs_path(dest_config_path)
         self.print_message('<>Updating configuration in <code>%s</code> from <code>%s</code>.'
                            % (dest_config_path, source_config_path))
 
@@ -217,9 +222,9 @@ class Action(metaclass=ActionMeta):
                 update_group(src_group.group(group_name), dst_group.group(group_name),
                              bkp_group.group(group_name))
 
-        src_cfg = KConfig(source_config_path, KConfig.NoGlobals)
-        dst_cfg = KConfig(dest_config_path, KConfig.NoGlobals)
-        bkp_cfg = KConfig('', KConfig.NoGlobals)  # we keep here original settings of dest
+        src_cfg = KConfig(source_config_path, KConfig.SimpleConfig)
+        dst_cfg = KConfig(dest_config_path, KConfig.SimpleConfig)
+        bkp_cfg = KConfig('', KConfig.SimpleConfig)  # we keep here original settings of dest
 
         update_group(src_cfg, dst_cfg, bkp_cfg)
         # update top level entries
@@ -235,8 +240,8 @@ class Action(metaclass=ActionMeta):
         @param src_path: path of the file/directory to copy
         @param dst_dir_path: path of the destination directory
         """
-        src_path = self.get_abs_path(src_path)
-        dst_dir_path = self.get_abs_path(dst_dir_path)
+        src_path = self.make_abs_path(src_path)
+        dst_dir_path = self.make_abs_path(dst_dir_path)
         self.print_message('<>Copying file <code>%s</code> to <code>%s</code>.'
                            % (src_path, dst_dir_path))
         if not os.path.exists(src_path):
@@ -254,8 +259,8 @@ class Action(metaclass=ActionMeta):
         @param src_path: path of the file/directory to which the created symlink will point
         @param dst_path: path of the symbolic link to create
         """
-        src_path = self.get_abs_path(src_path)
-        dst_path = self.get_abs_path(dst_path)
+        src_path = self.make_abs_path(src_path)
+        dst_path = self.make_abs_path(dst_path)
         self.print_message('<>Creating symbolic link <code>%s</code> to <code>%s</code>.'
                            % (dst_path, src_path))
         if not os.path.exists(src_path):
