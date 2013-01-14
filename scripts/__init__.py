@@ -346,7 +346,7 @@ class Action(metaclass=ActionMeta):
     def proceed(self):
         """To be reimplemented in subclasses.
         """
-        pass
+        self.print_message('<><b>Doing nothing</b>')
 
 
 class ActionSet():
