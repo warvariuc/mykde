@@ -1,6 +1,6 @@
 import os.path
 
-from scripts import Action
+from mykde import Action
 
 
 class Action(Action):

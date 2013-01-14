@@ -1,4 +1,3 @@
-__version__ = '0.9.0'
 __author__ = 'Victor Varvariuc<victor.varvariuc@gmail.com>'
 
 import subprocess
@@ -15,6 +14,8 @@ from distutils import dir_util, file_util
 from PyQt4 import QtGui, QtCore
 from PyKDE4.kdecore import KConfig
 from PyKDE4.kdeui import KGlobalSettings
+
+from . import signals
 
 
 # disable PyQt input hook in order for ipdb to work
@@ -322,26 +323,59 @@ class Action(metaclass=ActionMeta):
         kGlobalSettings.emitChange(KGlobalSettings.IconChanged)
         kGlobalSettings.emitChange(KGlobalSettings.CursorChanged)
 
-        self.request_kwin_reload_config()
-        self.request_plasma_reload_config()
-        self.request_global_accel_reload_config()
+#        self.request_kwin_reload_config()
+#        self.request_plasma_reload_config()
+#        self.request_global_accel_reload_config()
+        self.stop_kwin()
+        self.stop_plasma()
+        self.stop_kglobalaccel()
+        time.sleep(2)  # give time to stop completely
+        self.start_kwin()
+        self.start_plasma()
+        self.stop_kglobalaccel()
 
     def request_plasma_reload_config(self):
         self.print_message('Asking plasma to reload its config')
         plasma = dbus.SessionBus().get_object('org.kde.plasma-desktop', '/MainApplication')
         dbus.Interface(plasma, 'org.kde.KApplication').reparseConfiguration()
 
+    def stop_plasma(self):
+        self.print_message('Stopping Plasma')
+        subprocess.call('kquitapp plasma-desktop', shell=True)
+        signals.plasma_stopped.send(None)
+
+    def start_plasma(self):
+        self.print_message('Stopping Plasma')
+        subprocess.call('plasma-desktop &', shell=True)
+        signals.plasma_started.send(None)
+
+    def stop_kwin(self):
+        self.print_message('Stopping Kwin')
+        subprocess.call('kquitapp kwin', shell=True)
+        signals.kwin_stopped.send(None)
+
+    def start_kwin(self):
+        self.print_message('Stopping Kwin')
+        subprocess.call('kwin &', shell=True)
+        signals.kwin_started.send(None)
+
     def request_kwin_reload_config(self):
         self.print_message('Asking Kwin to reload its config')
-#        kwin = dbus.SessionBus().get_object('org.kde.kwin', '/MainApplication')
-#        dbus.Interface(kwin, 'org.kde.KApplication').reparseConfiguration()
-        subprocess.call('kwin --replace &', shell=True)
+        kwin = dbus.SessionBus().get_object('org.kde.kwin', '/MainApplication')
+        dbus.Interface(kwin, 'org.kde.KApplication').reparseConfiguration()
 
     def request_global_accel_reload_config(self):
         self.print_message('Asking global shortcuts manager to reload its config')
-#        dbus.Interface(dbus.SessionBus().get_object('org.kde.kglobalaccel', '/MainApplication'),
-#                       'org.kde.KApplication').reparseConfiguration()
-        subprocess.call('kquitapp kglobalaccel && sleep 2s && kglobalaccel &', shell=True)
+        dbus.Interface(dbus.SessionBus().get_object('org.kde.kglobalaccel', '/MainApplication'),
+                       'org.kde.KApplication').reparseConfiguration()
+
+    def stop_kglobalaccel(self):
+        self.print_message('Stopping global shortcuts manager')
+        subprocess.call('kquitapp kglobalaccel', shell=True)
+
+    def start_kglobalaccel(self):
+        self.print_message('Starting global shortcuts manager')
+        subprocess.call('kglobalaccel &', shell=True)
 
     def proceed(self):
         """To be reimplemented in subclasses.

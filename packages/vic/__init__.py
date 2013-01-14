@@ -1,4 +1,4 @@
-from scripts import ActionPackage, ActionSet
+from mykde import ActionPackage, ActionSet
 
 
 class ActionPackage(ActionPackage):

@@ -14,7 +14,7 @@ import html
 from pkgutil import iter_modules
 from PyQt4 import QtCore, QtGui, uic
 
-from scripts import ActionSet, Action
+from . import ActionSet, Action
 
 
 app = QtGui.QApplication(sys.argv)
@@ -66,7 +66,7 @@ def iter_classes(module, klass):
 
 
 FormClass, BaseClass = uic.loadUiType(
-    os.path.join(base_dir, 'scripts', 'main_window.ui')
+    os.path.join(base_dir, 'mykde', 'main_window.ui')
 )
 assert BaseClass is QtGui.QMainWindow
 

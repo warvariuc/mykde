@@ -1,6 +1,6 @@
 import os
 
-from scripts import Action
+from mykde import Action
 
 """
 If a font in the browser is not Droid, in Google Chrome right click on the text

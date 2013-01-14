@@ -1,4 +1,4 @@
-from scripts import Action
+from mykde import Action
 
 
 class GoogleChrome(Action):
