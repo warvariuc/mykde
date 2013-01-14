@@ -1,4 +1,7 @@
-from mykde import Action
+import dbus
+from PyKDE4.kdecore import KConfig
+
+from mykde import Action, signals
 
 
 class Action(Action):
@@ -12,11 +15,38 @@ This work by <a href="http://si.smugmug.com">Simon Tong</a> is licensed under a
 <img src="screenshot.jpg"/>
 """
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        signals.kwin_stopped.connect(self.proceed2)
+
     def proceed(self):
-        self.copy_file('./flower monasterio cusco peru.jpg',
+        self.print_message('Action will performed after Plasma is stopped.')
+
+
+    def proceed2(self, **kwargs):
+        wallpaper_path = self.copy_file('./flower monasterio cusco peru.jpg',
                        '~/.kde/share/wallpapers/')
-#        self.update_kconfig('./plasmarc',
-#                            '~/.kde/share/config/plasmarc')
+
+        activity_manager = dbus.SessionBus().get_object('org.kde.kactivitymanagerd',
+                                                        '/ActivityManager')
+        current_activity_id = dbus.Interface(activity_manager,
+                                             'org.kde.ActivityManager').CurrentActivity()
+#        print('Current activity ID:', current_activity_id)
+        
+#        kwin = dbus.SessionBus().get_object('org.kde.kwin', '/KWin')
+#        print('Current desktop:', dbus.Interface(kwin, 'org.kde.KWin').currentDesktop())
+        
+        konf_path = self.make_abs_path('~/.kde/share/config/plasma-desktop-appletsrc')
+        # http://api.kde.org/pykde-4.7-api/kdecore/KConfig.html
+        konf = KConfig(konf_path, KConfig.SimpleConfig)
+        containments = konf.group('Containments')
+        for group_name in containments.groupList():
+            group = containments.group(group_name)
+            # http://api.kde.org/pykde-4.7-api/kdecore/KConfigGroup.html
+            if group.readEntry('activityId') == current_activity_id:
+#                print('Containment ID of the current activity:', group_name)
+                wallpaper_image_group = group.group('Wallpaper').group('image')
+                wallpaper_image_group.writeEntry('wallpaper', wallpaper_path)
 
 
 

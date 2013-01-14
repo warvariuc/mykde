@@ -240,6 +240,7 @@ class Action(metaclass=ActionMeta):
         """Copy a file/directory to another directory.
         @param src_path: path of the file/directory to copy
         @param dst_dir_path: path of the destination directory
+        @return: path of the copied file
         """
         src_path = self.make_abs_path(src_path)
         dst_dir_path = self.make_abs_path(dst_dir_path)
@@ -254,6 +255,8 @@ class Action(metaclass=ActionMeta):
         else:
             dir_util.mkpath(dst_dir_path)
             file_util.copy_file(src_path, dst_path)
+
+        return dst_path
 
     def create_symlink(self, src_path, dst_path):
         """Create a symlink.
