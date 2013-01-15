@@ -18,10 +18,6 @@ from PyKDE4.kdeui import KGlobalSettings
 from . import signals
 
 
-# disable PyQt input hook in order for ipdb to work
-QtCore.pyqtRemoveInputHook()
-
-
 class ActionMeta(type):
     """Action metaclass to make Action sublclasses sortable.
     """
@@ -335,32 +331,31 @@ class Action(metaclass=ActionMeta):
         time.sleep(2)  # give time to stop completely
         self.start_kwin()
         self.start_plasma()
-        self.stop_kglobalaccel()
+        self.start_kglobalaccel()
 
     def request_plasma_reload_config(self):
         self.print_message('Asking plasma to reload its config')
         plasma = dbus.SessionBus().get_object('org.kde.plasma-desktop', '/MainApplication')
         dbus.Interface(plasma, 'org.kde.KApplication').reparseConfiguration()
 
+    def _call(self, command, message, signal=None):
+        self.print_message(message)
+        with open(os.devnull, 'wb') as dev_null:
+            subprocess.call(command, shell=True, stdout=dev_null, stderr=dev_null)
+        if signal:
+            signal.send(None)
+
     def stop_plasma(self):
-        self.print_message('Stopping Plasma')
-        subprocess.call('kquitapp plasma-desktop', shell=True)
-        signals.plasma_stopped.send(None)
+        self._call('kquitapp plasma-desktop', 'Stopping Plasma', signals.plasma_stopped)
 
     def start_plasma(self):
-        self.print_message('Stopping Plasma')
-        subprocess.call('plasma-desktop &', shell=True)
-        signals.plasma_started.send(None)
+        self._call('plasma-desktop &', 'Starting Plasma', signals.plasma_started)
 
     def stop_kwin(self):
-        self.print_message('Stopping Kwin')
-        subprocess.call('kquitapp kwin', shell=True)
-        signals.kwin_stopped.send(None)
+        self._call('kquitapp kwin', 'Stopping Kwin', signals.kwin_stopped)
 
     def start_kwin(self):
-        self.print_message('Stopping Kwin')
-        subprocess.call('kwin &', shell=True)
-        signals.kwin_started.send(None)
+        self._call('kwin &', 'Starting Kwin', signals.kwin_started)
 
     def request_kwin_reload_config(self):
         self.print_message('Asking Kwin to reload its config')
@@ -373,12 +368,10 @@ class Action(metaclass=ActionMeta):
                        'org.kde.KApplication').reparseConfiguration()
 
     def stop_kglobalaccel(self):
-        self.print_message('Stopping global shortcuts manager')
-        subprocess.call('kquitapp kglobalaccel', shell=True)
+        self._call('kquitapp kglobalaccel', 'Stopping global shortcuts manager')
 
     def start_kglobalaccel(self):
-        self.print_message('Starting global shortcuts manager')
-        subprocess.call('kglobalaccel &', shell=True)
+        self._call('kglobalaccel &', 'Starting global shortcuts manager')
 
     def proceed(self):
         """To be reimplemented in subclasses.
@@ -400,26 +393,3 @@ class ActionPackage():
     author = ''
     version = 0
     description = ''  # html description
-
-
-def dump_args(func):
-    """Decorator to print function call details - parameter names and passed/effective values.
-    """
-
-    def wrapper(*func_args, **func_kwargs):
-
-        arg_names = func.func_code.co_varnames[:func.func_code.co_argcount]
-        args = func_args[:len(arg_names)]
-        if func.func_defaults:
-            args = args + func.func_defaults[len(func.func_defaults) - func.func_code.co_argcount + len(args):]
-        params = zip(arg_names, args)
-        args = func_args[len(arg_names):]
-        if args:
-            params.append(('*', args))
-        if func_kwargs:
-            params.append(('**', func_kwargs))
-        print('{} ( {} )'.format(func.func_name, ', '.join(map('{0[0]!s} = {0[1]!r}'.format, params))))
-
-        return func(*func_args, **func_kwargs)
-
-    return wrapper

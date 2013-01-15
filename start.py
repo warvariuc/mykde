@@ -46,4 +46,8 @@ try:
 except ImportError:
     show_error('PyQt4/PyKDE4', 'PyQt4/PyKDE4 libraries are not available')
 
-import mykde.main
+
+from mykde.main import main
+
+
+main()
