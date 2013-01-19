@@ -9,6 +9,8 @@ mykde is a set of scripts and settings for quickly transforming your KDE desktop
 It was tested with Kubuntu 12.10 (which has the required `Python 3.2` with
 `PyQt4` and `PyKDE4` libraries, `apt-get` with `apt` Python lib).
 
+You can see a screencast here: http://www.youtube.com/watch?v=GGINx5y_dDs
+
 Requirements
 ============
 
