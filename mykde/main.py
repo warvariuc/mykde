@@ -58,7 +58,7 @@ class MainWindow(QtGui.QMainWindow, FormClass):
         self.setupUi(self)
         self.splitter.setStretchFactor(0, 0)
         self.splitter.setStretchFactor(1, 1)
-        self.setWindowIcon(QtGui.QIcon('scripts/icon.png'))
+        self.setWindowIcon(QtGui.QIcon('mykde/icon.png'))
         # open URL in the default KDE browser
         self.textBrowser.setOpenExternalLinks(True)
         self.print_message('<><h3 style="color:blue">Welcome to the KDE transformer!</h3>')
