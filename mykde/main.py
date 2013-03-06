@@ -223,13 +223,15 @@ class CustomActionSet(ActionSet):
     actions = None
 
 
-def main():
+def main(package_module):
+
     app = QtGui.QApplication(sys.argv)
     main_window = MainWindow()
     main_window.proceedButton.setFocus(True)
 
-    for _, module_name, _ in iter_modules(['packages']):
-        main_window.packageCombo.addItem(module_name, 'packages.' + module_name)
+    package_module_name = package_module.__name__
+    for _, module_name, _ in iter_modules([package_module_name]):
+        main_window.packageCombo.addItem(module_name, package_module_name + '.' + module_name)
 
     if main_window.packageCombo.count():
         main_window.packageCombo.activated.emit(0)
