@@ -147,7 +147,7 @@ class MainWindow(QtGui.QMainWindow, FormClass):
                 item.setFlags(QtCore.Qt.ItemIsSelectable | QtCore.Qt.ItemIsUserCheckable
                               | QtCore.Qt.ItemIsEnabled)
                 item.setCheckState(QtCore.Qt.Checked)
-                item.setToolTip('<div>' + action.description + '</div>')
+                item.setToolTip('<div>%s</div>' % action.description.strip())
     #            item.setStatusTip(action.description)
                 item.setData(QtCore.Qt.UserRole, action)
                 self.actionList.addItem(item)
@@ -182,7 +182,6 @@ class MainWindow(QtGui.QMainWindow, FormClass):
                 check_state = QtCore.Qt.Checked if action in action_set.actions else QtCore.Qt.Unchecked
                 item.setCheckState(check_state)
         self.actionList.setCurrentItem(None)  # reset selection
-
     def on_actionList_itemChanged(self, item):
         """Item checked/unchecked.
         """
@@ -208,7 +207,7 @@ class MainWindow(QtGui.QMainWindow, FormClass):
         item = self.actionList.item(index)
         action = item.data(QtCore.Qt.UserRole)
         self.print_message('<>About action <b>%s</b>:<blockquote>%s</blockquote>'
-                           % (action.name, action.description))
+                           % (action.name, action.description.strip()))
 
 
 class NoneActionSet(ActionSet):
