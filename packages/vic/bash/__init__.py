@@ -1,16 +1,16 @@
 import os.path
 
-from mykde import Action
+from mykde import BaseAction
 
 
-class Action(Action):
+class Action(BaseAction):
 
     name = "Bash"
     description = "Custom prompt, colors. Install emacs"
 
     packages = ['most', 'emacs23-nox']
 
-    def update_text(self, file_path, text):
+    def add_text(self, file_path, text):
         with open(file_path) as file_handler:
             file_content = file_handler.read()
         if text in file_content:
@@ -38,8 +38,8 @@ reset=$(tput sgr0)
 PS1='${debian_chroot:+($debian_chroot)}\[\[$bold$green\]\u@:\[$blue\]\w\[$yellow\]$(__git_ps1)\[$reset\] \$ '
 """)
         # Configure 'most' to handle man pages
-        self.update_text(bashrc_path, 'export MANPAGER="/usr/bin/most -s"')
+        self.add_text(bashrc_path, 'export MANPAGER="/usr/bin/most -s"')
         # set emacs as the default editor
-        self.update_text(bashrc_path, 'export EDITOR=emacs')
+        self.add_text(bashrc_path, 'export EDITOR=emacs')
         # show git branch name with dirty state mark
-        self.update_text(bashrc_path, 'export GIT_PS1_SHOWDIRTYSTATE=true')
+        self.add_text(bashrc_path, 'export GIT_PS1_SHOWDIRTYSTATE=true')

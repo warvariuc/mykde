@@ -1,0 +1,6 @@
+<!DOCTYPE kpartgui>
+<kpartgui version="24" name="session">
+ <ActionProperties scheme="Default">
+  <Action shortcut="Ctrl+Shift+X" name="clear-history-and-reset"/>
+ </ActionProperties>
+</kpartgui>

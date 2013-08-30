@@ -1,6 +1,6 @@
 import os
 
-from mykde import Action
+from mykde import BaseAction
 
 """
 If a font in the browser is not Droid, in Google Chrome right click on the text
@@ -17,7 +17,7 @@ LiberationSans-Regular.ttf: "Liberation Sans" "Regular"
 Ok, you found the offending font. Add it to 'fonts.conf' file.
 """
 
-class Action(Action):
+class Action(BaseAction):
 
     name = 'Droid fonts everywhere'
     description = """\

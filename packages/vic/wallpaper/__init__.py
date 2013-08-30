@@ -1,10 +1,10 @@
 import dbus
 from PyKDE4.kdecore import KConfig
 
-from mykde import Action, signals
+from mykde import BaseAction, signals
 
 
-class Action(Action):
+class Action(BaseAction):
 
     name = "Wallpaper"
     description = """\

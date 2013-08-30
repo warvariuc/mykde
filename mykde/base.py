@@ -45,7 +45,7 @@ class ActionMeta(type):
         return id(self) == id(other)
 
 
-class Action(metaclass=ActionMeta):
+class BaseAction(metaclass=ActionMeta):
 
     name = None
     author = ''
@@ -237,8 +237,24 @@ class Action(metaclass=ActionMeta):
 #        if bkpCfgPath:
 #            bkp_cfg.sync()
 
+    def update_xmlconfig(self, source_config_path, dest_config_path):
+        """Update an XML configuration file
+        @param source_config_path: relative path to the source configuration file
+        @param dest_config_path: path to the file to apply patch to
+        """
+        assert isinstance(source_config_path, str)
+        assert isinstance(dest_config_path, str)
+        assert not os.path.isabs(source_config_path), 'The source should be relative'
+        source_config_path = self.make_abs_path(source_config_path)
+        assert os.path.isfile(source_config_path)
+        dest_config_path = self.make_abs_path(dest_config_path)
+        self.print_message('<>Updating configuration in <code>%s</code> from <code>%s</code>.'
+                           % (dest_config_path, source_config_path))
+
+        raise NotImplemented('To be implemented!')
+
     def copy_file(self, src_path, dst_dir_path):
-        """Copy a file/directory to another directory.
+        """Copy a single file/directory to another directory.
         @param src_path: path of the file/directory to copy
         @param dst_dir_path: path of the destination directory
         @return: path of the copied file

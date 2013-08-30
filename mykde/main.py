@@ -8,7 +8,7 @@ import html
 from pkgutil import iter_modules
 from PyQt4 import QtCore, QtGui, uic
 
-from . import ActionSet, Action, get_object_by_path, get_object_path
+from . import ActionSet, BaseAction, get_object_by_path, get_object_path
 
 
 def walk_modules(path):
@@ -141,7 +141,7 @@ class MainWindow(QtGui.QMainWindow, FormClass):
         package_path = self.packageCombo.itemData(index)
         all_actions = []
         for module in walk_modules(package_path):
-            for action in iter_classes(module, Action):
+            for action in iter_classes(module, BaseAction):
                 item = QtGui.QListWidgetItem(action.name)
                 all_actions.append(action)
                 item.setFlags(QtCore.Qt.ItemIsSelectable | QtCore.Qt.ItemIsUserCheckable

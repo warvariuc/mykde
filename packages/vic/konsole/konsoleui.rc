@@ -1,0 +1,7 @@
+<!DOCTYPE kpartgui>
+<kpartgui name="konsole">
+ <ActionProperties scheme="Default">
+  <Action shortcut="Ctrl+PgDown" name="next-view"/>
+  <Action shortcut="Ctrl+PgUp" name="previous-view"/>
+ </ActionProperties>
+</kpartgui>

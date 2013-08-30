@@ -1,7 +1,7 @@
-from mykde import Action
+from mykde import BaseAction
 
 
-class Action(Action):
+class Action(BaseAction):
 
     name = "Hycons icons"
     description = """\

@@ -1,7 +1,7 @@
-from mykde import Action, signals
+from mykde import BaseAction, signals
 
 
-class Action(Action):
+class Action(BaseAction):
 
     name = "Produkt Plasma theme"
     description = """\
