@@ -1,0 +1,6 @@
+<kpartgui name="krusader">
+ <ActionProperties>
+  <Action shortcut="Ctrl+PgDown" name="next tab"/>
+  <Action shortcut="Ctrl+PgUp" name="previous tab"/>
+ </ActionProperties>
+</kpartgui>
