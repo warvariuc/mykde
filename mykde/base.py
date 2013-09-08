@@ -14,10 +14,11 @@ from PyKDE4.kdecore import KConfig
 from PyKDE4.kdeui import KGlobalSettings
 
 from . import signals
+from .xml_tree_merge import XmlTreeMerger
 
 
 class ActionMeta(type):
-    """Action metaclass to make Action sublclasses sortable.
+    """Action metaclass to make Action subclasses sortable.
     """
     def __new__(cls, name, bases, attrs):
         action = type.__new__(cls, name, bases, attrs)
@@ -249,7 +250,16 @@ class BaseAction(metaclass=ActionMeta):
         self.print_message('<>Updating configuration in <code>%s</code> from <code>%s</code>.'
                            % (dest_config_path, source_config_path))
 
-        raise NotImplemented('To be implemented!')
+        merger = XmlTreeMerger(dest_config_path, source_config_path)
+        new_xml = merger.merge()
+        dest_dir_path = os.path.dirname(dest_config_path)
+        if not os.path.exists(dest_dir_path):
+            self.create_directory(dest_dir_path)
+        with open(dest_config_path, 'w', encoding='utf-8') as file:
+            file.write(new_xml)
+
+    def create_directory(self, dir_path):
+        dir_util.mkpath(dir_path)
 
     def copy_file(self, src_path, dst_dir_path):
         """Copy a single file/directory to another directory.
@@ -268,7 +278,7 @@ class BaseAction(metaclass=ActionMeta):
         if os.path.isdir(src_path):
             dir_util.copy_tree(src_path, dst_path)
         else:
-            dir_util.mkpath(dst_dir_path)
+            self.create_directory(dst_dir_path)
             file_util.copy_file(src_path, dst_path)
 
         return dst_path

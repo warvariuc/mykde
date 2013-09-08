@@ -1,10 +1,17 @@
+import os
 import xml.etree.ElementTree as ET
 
 
 class XmlTreeMerger():
+    """Class for merging an XML tree into another XML tree.
+    """
     def __init__(self, path, patch_path):
-        self.tree = ET.parse(path)
         self.patch_tree = ET.parse(patch_path)
+        if not os.path.isfile(path):
+            # if destination XML file does not exist use source XML
+            # i.e. after merge destination will be equal to source
+            path = patch_path
+        self.tree = ET.parse(path)
 
     def matches(self, patch_node, node):
         """Return True if `node_patch` matches `node`, i.e. tag names are equal and
@@ -55,7 +62,3 @@ class XmlTreeMerger():
         else:
             if level and (not elem.tail or not elem.tail.strip()):
                 elem.tail = i
-
-
-# merger = XmlTreeMerger('konsoleui.rc', 'konsoleui_patch.rc')
-# print(merger.merge())
