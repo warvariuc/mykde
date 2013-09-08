@@ -40,12 +40,10 @@ def iter_classes(module, klass):
             yield obj
 
 
-base_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..')
-os.chdir(base_dir)
+BASE_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..')
+os.chdir(BASE_DIR)
 
-FormClass, BaseClass = uic.loadUiType(
-    os.path.join(base_dir, 'mykde', 'main_window.ui')
-)
+FormClass, BaseClass = uic.loadUiType(os.path.join(BASE_DIR, 'mykde', 'main_window.ui'))
 assert BaseClass is QtGui.QMainWindow
 
 
@@ -182,6 +180,7 @@ class MainWindow(QtGui.QMainWindow, FormClass):
                 check_state = QtCore.Qt.Checked if action in action_set.actions else QtCore.Qt.Unchecked
                 item.setCheckState(check_state)
         self.actionList.setCurrentItem(None)  # reset selection
+
     def on_actionList_itemChanged(self, item):
         """Item checked/unchecked.
         """

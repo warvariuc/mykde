@@ -1,8 +1,6 @@
 __author__ = 'Victor Varvariuc<victor.varvariuc@gmail.com>'
 
 import subprocess
-import json
-import traceback
 import os
 import sys
 import time
@@ -414,3 +412,4 @@ class ActionPackage():
     author = ''
     version = 0
     description = ''  # html description
+
