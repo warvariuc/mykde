@@ -22,15 +22,16 @@ This work by <a href="http://si.smugmug.com">Simon Tong</a> is licensed under a
     def proceed(self):
         self.print_message('Action will performed after Plasma is stopped.')
 
-
     def proceed2(self, **kwargs):
-        wallpaper_path = self.copy_file('./flower monasterio cusco peru.jpg',
-                       '~/.kde/share/wallpapers/')
+        # https://bugs.kde.org/show_bug.cgi?id=217950
+        self.print_message('Changing wallpaper.')
+        wallpaper_path = self.copy_file(
+            './flower monasterio cusco peru.jpg', '~/.kde/share/wallpapers/')
 
-        activity_manager = dbus.SessionBus().get_object('org.kde.kactivitymanagerd',
-                                                        '/ActivityManager')
-        current_activity_id = dbus.Interface(activity_manager,
-                                             'org.kde.ActivityManager').CurrentActivity()
+        activity_manager = dbus.SessionBus().get_object(
+            'org.kde.ActivityManager', '/ActivityManager/Activities')
+        current_activity_id = dbus.Interface(
+            activity_manager, 'org.kde.ActivityManager.Activities').CurrentActivity()
 #        print('Current activity ID:', current_activity_id)
         
 #        kwin = dbus.SessionBus().get_object('org.kde.kwin', '/KWin')

@@ -4,7 +4,13 @@ from mykde import BaseAction
 class Action(BaseAction):
 
     name = 'Konsole settings'
-    description = "Custom settings for Konsole"
+    description = """Custom settings for Konsole:
+- custom color theme
+- Ctrl+Shift+X - to clear scrollback and reset
+- Ctrl+PageDown/PageUp - to switch to next/previous tab
+- enabled unlimited history
+- other tweaks
+"""
 
     def proceed(self):
         self.copy_file('./vic.colorscheme',

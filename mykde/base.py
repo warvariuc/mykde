@@ -5,6 +5,7 @@ import os
 import sys
 import time
 import re
+import traceback
 
 import dbus
 import apt
@@ -369,10 +370,13 @@ class BaseAction(metaclass=ActionMeta):
 
     def _call(self, command, message, signal=None):
         self.print_message(message)
-        with open(os.devnull, 'wb') as dev_null:
-            subprocess.call(command, shell=True, stdout=dev_null, stderr=dev_null)
-        if signal:
-            signal.send(None)
+        try:
+            with open(os.devnull, 'wb') as dev_null:
+                subprocess.call(command, shell=True, stdout=dev_null, stderr=dev_null)
+            if signal:
+                signal.send(None)
+        except Exception:
+            self.print_message(traceback.format_exc())
 
     def stop_plasma(self):
         self._call('kquitapp plasma-desktop', 'Stopping Plasma', signals.plasma_stopped)
