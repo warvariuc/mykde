@@ -1,4 +1,4 @@
-[krunner]
+[ksmserver]
 Lock Session=Meta+L,Ctrl+Alt+L,Lock Session
 
 [kwin]
