@@ -7,6 +7,7 @@ import html
 
 from pkgutil import iter_modules
 from PyQt4 import QtCore, QtGui, uic
+from PyKDE4 import kdecore
 
 from . import ActionSet, BaseAction, get_object_by_path, get_object_path
 
@@ -60,6 +61,7 @@ class MainWindow(QtGui.QMainWindow, FormClass):
         # open URL in the default KDE browser
         self.textBrowser.setOpenExternalLinks(True)
         self.print_message('<><h3 style="color:blue">Welcome to the KDE transformer!</h3>')
+        self.print_message('You are using KDE %s\n' % kdecore.versionString())
 
     @QtCore.pyqtSlot(str)
     def on_textBrowser_highlighted(self, url):
