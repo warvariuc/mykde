@@ -7,7 +7,7 @@ from mykde import BaseAction, signals
 class Action(BaseAction):
 
     name = "Wallpaper"
-    description = """\
+    description = """
 Flower Monasterio, Cusco, Peru.<br>
 This work by <a href="http://si.smugmug.com">Simon Tong</a> is licensed under a 
 <a href="http://creativecommons.org/licenses/by-nc-sa/3.0/us/">Creative Commons License</a><br>
@@ -15,16 +15,14 @@ This work by <a href="http://si.smugmug.com">Simon Tong</a> is licensed under a
 <img src="screenshot.jpg"/>
 """
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        signals.kwin_stopped.connect(self.proceed2)
-
     def proceed(self):
-        self.print_message('Action will performed after Plasma is stopped.')
+        self.print_text('Action will performed after Plasma is stopped.')
+        # specifying dispatch_uid to prevent multiple calls
+        signals.kwin_stopped.connect(self._proceed, dispatch_uid=self.__class__)
 
-    def proceed2(self, **kwargs):
+    def _proceed(self, **kwargs):
         # https://bugs.kde.org/show_bug.cgi?id=217950
-        self.print_message('Changing wallpaper.')
+        self.print_text('Installing %r' % self.name)
         wallpaper_path = self.copy_file(
             './flower monasterio cusco peru.jpg', '~/.kde/share/wallpapers/')
 

@@ -10,6 +10,7 @@ from PyQt4 import QtCore, QtGui, uic
 from PyKDE4 import kdecore
 
 from . import ActionSet, BaseAction, get_object_by_path, get_object_path
+from . import signals
 
 
 def walk_modules(path):
@@ -55,40 +56,38 @@ class MainWindow(QtGui.QMainWindow, FormClass):
         # uic adds a function to our class called setupUi
         # calling this creates all the widgets from the .ui file
         self.setupUi(self)
-        self.splitter.setStretchFactor(0, 0)
-        self.splitter.setStretchFactor(1, 1)
         self.setWindowIcon(QtGui.QIcon('mykde/icon.png'))
         # open URL in the default KDE browser
         self.textBrowser.setOpenExternalLinks(True)
-        self.print_message('<><h3 style="color:blue">Welcome to the KDE transformer!</h3>')
-        self.print_message('You are using KDE %s\n' % kdecore.versionString())
+        self.print_html('<h3 style="color:#268BD2">Welcome to the KDE transformer!</h3>')
+        self.print_text('You are using KDE %s\n' % kdecore.versionString())
 
     @QtCore.pyqtSlot(str)
     def on_textBrowser_highlighted(self, url):
         # show link URL in the status bar when cursor is over it
         self.statusBar().showMessage(url)
 
-    def print_message(self, message, end='\n'):
+    def _print_html(self, text):
         text_browser = self.textBrowser
         cursor = text_browser.textCursor()
         cursor.movePosition(QtGui.QTextCursor.End)
         text_browser.setTextCursor(cursor)
-        if not message.startswith('<>'):
-            message = html.escape(message + end).replace('\n', '<br>')
-        else:
-            if end == '\n':
-                end = '<br>'
-            message += end
-        text_browser.insertHtml(message)
+        text_browser.insertHtml(text)
         text_browser.ensureCursorVisible()  # scroll to the new message
         QtGui.QApplication.processEvents()
 
+    def print_text(self, text, end='\n'):
+        self._print_html(html.escape(text + end).replace('\n', '<br>'))
+
+    def print_html(self, text, end='<br>'):
+        self._print_html(text + end)
+
     @QtCore.pyqtSlot()
     def on_aboutButton_clicked(self):
-        self.print_message("""<>\
+        self.print_html("""
 <hr><div style="background-color:green;color:white;font:bold large">
 "My KDE" transformer. Author Victor Varvariuc.<br>
-<a href="https://github.com/warvariuc/mykde" style="color:white">Program page here.</a>
+<a href="https://github.com/warvariuc/mykde" style="color:white">Project page here.</a>
 </div><hr>
 """)
 
@@ -107,32 +106,31 @@ class MainWindow(QtGui.QMainWindow, FormClass):
         # add new repositories
         res = actions[0].install_repositories(repositories)
         if not res:
-            self.print_message('<><b style="color:red">Not all repositories installed. '
-                               'Not proceeding further.</b>')
+            self.print_html('<b style="color:red">Not all repositories installed. '
+                            'Not proceeding further.</b>')
             return
         # install missing packages
         res = actions[0].install_packages(packages)
         if not res:
-            self.print_message('<><b style="color:red">Not all packages installed. '
-                               'Not proceeding further.</b>')
+            self.print_html('<b style="color:red">Not all packages installed. '
+                            'Not proceeding further.</b>')
             return
         # perform the actions
         for action in actions:
-            self.print_message('<>Performing action <b>"%s"</b>' % action.name)
+            self.print_html('Performing action <b>"%s"</b>' % action.name)
             try:
                 action.proceed()
             except Exception as exc:
-                self.print_message('<><span style="color:red"><b>Error:</b> %s</span>' % exc)
+                self.print_html('<span style="color:red"><b>Error:</b> %s</span>' % exc)
             else:
-                self.print_message('<>Finished action <b style="color:green">"%s"</b>'
-                                   % action.name)
+                self.print_html('Finished action <b style="color:green">"%s"</b>'
+                                % action.name)
 
-        # reload KDE configuration
-        actions[0].request_kde_reload_config()
-        self.print_message(
-            '<><b style="background-color:green;color:white">Finished package installation.<br>'
-            'Some effects could be seen only after you restart your KDE session.</b>'
-        )
+        signals.action_set_proceeded.send(self, actions=actions)
+
+        self.print_html(
+            '<b style="background-color:green;color:white">Finished package installation.<br>'
+            'Some effects could be seen only after you restart your KDE session.</b>')
 
     @QtCore.pyqtSlot(int)
     def on_packageCombo_activated(self, index):
@@ -147,8 +145,9 @@ class MainWindow(QtGui.QMainWindow, FormClass):
                 item.setFlags(QtCore.Qt.ItemIsSelectable | QtCore.Qt.ItemIsUserCheckable
                               | QtCore.Qt.ItemIsEnabled)
                 item.setCheckState(QtCore.Qt.Checked)
-                item.setToolTip('<div>%s</div>' % action.description.strip())
-    #            item.setStatusTip(action.description)
+                # item.setToolTip('<div>%s</div>' % action.description.strip())
+                # item.setStatusTip(action.description)
+                item.setStatusTip('Click to see action description')
                 item.setData(QtCore.Qt.UserRole, action)
                 self.actionList.addItem(item)
 
@@ -173,7 +172,7 @@ class MainWindow(QtGui.QMainWindow, FormClass):
     @QtCore.pyqtSlot(int)
     def on_actionSetCombo_activated(self, index):
         action_set = self.actionSetCombo.itemData(index)
-        self.print_message('<>Action set <b>"%s"</b> was selected.' % action_set.name)
+        self.print_html('Action set &quot;<b>%s</b>&quot; was selected.' % action_set.name)
     #    main_window.web_view.setHtml(main_window.actionSetCombo.itemText(index))
         if action_set.actions is not None:  # not Custom
             for index in range(self.actionList.count()):
@@ -188,7 +187,7 @@ class MainWindow(QtGui.QMainWindow, FormClass):
         """
         check_text = 'Checked' if item.checkState() == QtCore.Qt.Checked else 'Unchecked'
         action = item.data(QtCore.Qt.UserRole)
-        self.print_message('<>%s action <b>"%s"</b>' % (check_text, action.name))
+        self.print_html('%s action &quot;<b>%s</b>&quot;' % (check_text, action.name))
 
         checked_actions = []
         for index in range(self.actionList.count()):
@@ -207,8 +206,8 @@ class MainWindow(QtGui.QMainWindow, FormClass):
             return
         item = self.actionList.item(index)
         action = item.data(QtCore.Qt.UserRole)
-        self.print_message('<>About action <b>%s</b>:<blockquote>%s</blockquote>'
-                           % (action.name, action.description.strip()))
+        self.print_html('About action &quot;<b>%s</b>&quot;:<blockquote>%s</blockquote>'
+                        % (action.name, action.description.strip()))
 
 
 class NoneActionSet(ActionSet):

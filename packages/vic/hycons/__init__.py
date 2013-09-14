@@ -4,7 +4,7 @@ from mykde import BaseAction
 class Action(BaseAction):
 
     name = "Hycons icons"
-    description = """\
+    description = """
 <a href="http://kde-look.org/content/show.php/?content=101767">Hycons icons</a><br>
 <br>
 <img src="screenshot.png"/>

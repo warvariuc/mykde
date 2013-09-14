@@ -4,7 +4,7 @@ from mykde import ActionPackage, ActionSet
 class ActionPackage(ActionPackage):
     author = 'Victor Varvaryuk <victor.varvariuc@gmail.com>'
     version = 1
-    description = """\
+    description = """
 TODO:
 xnview - unpack to ~/apps/ and create .desktop file in Graphics category
 clip2net

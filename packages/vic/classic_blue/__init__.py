@@ -5,7 +5,7 @@ class Action(BaseAction):
 
     name = "Classic Blue"
     author = 'Victor Varvariuc'
-    description = """\
+    description = """
 Custom widget (QtCurve) and color themes. I tried to make the QtCurve theme to contain is little
 lines as possible - to make it visually light.<br>
 <br>
@@ -13,14 +13,13 @@ lines as possible - to make it visually light.<br>
 """
     packages = ['qtcurve', 'fonts-droid']
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        signals.kwin_stopped.connect(self.proceed2)
-
     def proceed(self):
-        self.print_message('Action will performed after Kwin is stopped.')
+        self.print_text('Action will performed after Kwin is stopped.')
+        # specifying dispatch_uid to prevent multiple calls
+        signals.kwin_stopped.connect(self._proceed, dispatch_uid=self.__class__)
 
-    def proceed2(self, **kwargs):
+    def _proceed(self, **kwargs):
+        self.print_text('Installing %r' % self.name)
         self.copy_file('./classic_blue.qtcurve', '~/.kde/share/apps/QtCurve/')
         self.copy_file('./classic_blue.colors', '~/.kde/share/apps/color-schemes/')
         self.update_kconfig('./stylerc', '~/.config/qtcurve/stylerc')

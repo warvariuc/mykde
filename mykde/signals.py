@@ -4,6 +4,8 @@
 from .dispatch import Signal
 
 
+action_set_proceeded = Signal()
+
 kwin_stopped = Signal()
 kwin_started = Signal()
 

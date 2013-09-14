@@ -38,6 +38,7 @@ class ActionMeta(type):
 
         return action
 
+    # the following methods are needed to be able to sort Action subclasses
     def __lt__(self, other):
         return id(self) < id(other)
 
@@ -45,9 +46,16 @@ class ActionMeta(type):
         return id(self) == id(other)
 
 
-class BaseAction(metaclass=ActionMeta):
+def on_action_set_proceeded(actions, **kwargs):
+    actions[0].request_kde_reload_config()
 
-    name = None
+signals.action_set_proceeded.connect(on_action_set_proceeded)
+
+
+class BaseAction(metaclass=ActionMeta):
+    """Base class for user actions.
+    """
+    name = ''
     author = ''
     # http://doc.qt.digia.com/qt/richtext-html-subset.html
     description = "HTML description of the action"
@@ -55,24 +63,17 @@ class BaseAction(metaclass=ActionMeta):
     repositories = {}
     # list of package names to install
     packages = []
-
-    action_dir = None  # directory of the action class to compute absolute paths in description
+    action_dir = ''  # directory of the action class to compute absolute paths in description
 
     def __init__(self, main_window):
         assert isinstance(main_window, QtGui.QMainWindow)
         self.main_window = main_window
 
-    def open_konsole(self, text):
-        """Open a Konsole and type text in it.
-        """
-        bus = dbus.SessionBus()
-        konsole = bus.get_object('org.kde.konsole', '/Konsole')
-        session_id = dbus.Interface(konsole, 'org.kde.konsole.Window').newSession()
-        session = bus.get_object('org.kde.konsole', '/Sessions/%s' % session_id)
-        session.sendText(text)
+    def print_text(self, message, end='\n'):
+        self.main_window.print_text(message, end=end)
 
-    def print_message(self, message, end='\n'):
-        self.main_window.print_message(message, end=end)
+    def print_html(self, message, end='<br>'):
+        self.main_window.print_html(message, end=end)
 
     def install_repositories(self, repositories):
         assert isinstance(repositories, dict)
@@ -92,31 +93,31 @@ class BaseAction(metaclass=ActionMeta):
                     if repo_url in repo_file.read().splitlines():
                         # URL is already there, do not add this repo
                         continue
-            # install public key
+                # install public key
             commands.append('wget --quiet --output-document=- %s | sudo apt-key add -'
                             % public_key_url)
             # add repo to the list of repos
             commands.append('echo "%s" >> %s' % (repo_url, repo_path))
 
         if not commands:
-            self.print_message('<><b style="color:green">All required repositories are already '
-                               'installed</b>')
+            self.print_html('<b style="color:green">All required repositories are already '
+                            'installed</b>')
             return True
 
-        self.print_message('<><b style="color:#B08000">Installing additional repositories:</b>')
+        self.print_html('<b style="color:#B08000">Installing additional repositories:</b>')
 
         command = '\n'.join(commands)
-#        self.open_konsole(command)
+        #        self.open_konsole(command)
         retcode = self.kdesudo(command, 'Install additional repositories')
         if retcode:
-            self.print_message('<><b style="color:red">An error happened during installation of '
-                               'repositories.</b>')
+            self.print_html('<b style="color:red">An error happened during installation of '
+                            'repositories.</b>')
             QtGui.QMessageBox.critical(self.main_window, 'Error',
                                        'An error occured during apt-get install')
             return False
 
-        self.print_message('<><b style="color:green">The repositories were sucessfully '
-                           'installed.</b>')
+        self.print_html('<b style="color:green">The repositories were sucessfully '
+                        'installed.</b>')
         return True
 
     def install_packages(self, package_names):
@@ -125,18 +126,18 @@ class BaseAction(metaclass=ActionMeta):
         """
         assert isinstance(package_names, (list, tuple))
         if not package_names:
-            self.print_message('No packages required to install.')
+            self.print_text('No packages required to install.')
             return True
 
-        self.print_message('<><b style="color:#B08000">Updating package index:</b>')
+        self.print_html('<b style="color:#B08000">Updating package index:</b>')
         retcode = self.kdesudo('apt-get update', 'Updating package index')
         if retcode:
-            self.print_message('<><b style="color:red">An error happened while updating package '
-                               'index .</b>')
+            self.print_html('<b style="color:red">An error happened while updating package '
+                            'index .</b>')
             return False
 
-        self.print_message('<><b style="color:green">The package index was sucessfully '
-                           'updated.</b>')
+        self.print_html('<b style="color:green">The package index was sucessfully '
+                        'updated.</b>')
 
         packages = {package_name: None for package_name in package_names}
 
@@ -153,38 +154,47 @@ class BaseAction(metaclass=ActionMeta):
                 packages[package_name] = apt_package.candidate.summary
 
         if not packages:
-            self.print_message('<><b style="color:green">All required packages are already '
-                               'installed</b>')
+            self.print_html('<b style="color:green">All required packages are already '
+                            'installed</b>')
             return True
 
         message = 'These additional packages must be installed:<ul>'
         for package_name, package_summary in sorted(packages.items()):
             message += '<li><b>%s</b>: %s</li>' % (package_name, package_summary)
         message += '</ul>'
-        res = QtGui.QMessageBox.question(self.main_window, 'Required packages', message,
-                                         QtGui.QMessageBox.Ok | QtGui.QMessageBox.Cancel,
-                                         QtGui.QMessageBox.Ok)
+        res = QtGui.QMessageBox.question(
+            self.main_window, 'Required packages', message,
+            QtGui.QMessageBox.Ok | QtGui.QMessageBox.Cancel, QtGui.QMessageBox.Ok)
         if res != QtGui.QMessageBox.Ok:
             return False
 
-        self.print_message('<><b style="color:#B08000">Installing additional packages:</b>')
+        self.print_html('<b style="color:#B08000">Installing additional packages:</b>')
         retcode = self.kdesudo('apt-get --assume-yes install %s' % ' '.join(packages),
                                'Install required packages')
         if retcode:
-            self.print_message('<><b style="color:red">An error happened during packages '
-                               'installation.</b>')
+            self.print_html('<b style="color:red">An error happened during packages '
+                            'installation.</b>')
             QtGui.QMessageBox.critical(self.main_window, 'Error',
                                        'An error occured during apt-get install')
             return False
 
-        self.print_message('<><b style="color:green">The packages were successfully installed.</b>')
-#        QtGui.QMessageBox.information(self.main_window, 'Packages were installed',
-#                'The packages were sucessfully installed.')
+        self.print_html('<b style="color:green">The packages were successfully installed.</b>')
+        #        QtGui.QMessageBox.information(self.main_window, 'Packages were installed',
+        #                'The packages were sucessfully installed.')
         return True
 
     def kdesudo(self, command, comment):
         retcode, msg = self.call(['kdesudo', '--comment', comment, '-c', command])
         return retcode
+
+    def open_konsole(self, text):
+        """Open a Konsole and type text in it.
+        """
+        bus = dbus.SessionBus()
+        konsole = bus.get_object('org.kde.konsole', '/Konsole')
+        session_id = dbus.Interface(konsole, 'org.kde.konsole.Window').newSession()
+        session = bus.get_object('org.kde.konsole', '/Sessions/%s' % session_id)
+        session.sendText(text)
 
     @classmethod
     def make_abs_path(cls, file_path):
@@ -206,8 +216,8 @@ class BaseAction(metaclass=ActionMeta):
         source_config_path = self.make_abs_path(source_config_path)
         assert os.path.isfile(source_config_path)
         dest_config_path = self.make_abs_path(dest_config_path)
-        self.print_message('<>Updating configuration in <code>%s</code> from <code>%s</code>.'
-                           % (dest_config_path, source_config_path))
+        self.print_html('Updating configuration in <code>%s</code> from <code>%s</code>.'
+                        % (dest_config_path, source_config_path))
 
         # http://api.kde.org/4.0-api/kdelibs-apidocs/kdeui/html/classKGlobalSettings.html
         # http://api.kde.org/4.x-api/kdelibs-apidocs/kdecore/html/classKConfig.html
@@ -234,8 +244,8 @@ class BaseAction(metaclass=ActionMeta):
 
         dst_cfg.sync()  # save the current state of the configuration object
 
-#        if bkpCfgPath:
-#            bkp_cfg.sync()
+    #        if bkpCfgPath:
+    #            bkp_cfg.sync()
 
     def update_xmlconfig(self, source_config_path, dest_config_path):
         """Update an XML configuration file
@@ -248,8 +258,8 @@ class BaseAction(metaclass=ActionMeta):
         source_config_path = self.make_abs_path(source_config_path)
         assert os.path.isfile(source_config_path)
         dest_config_path = self.make_abs_path(dest_config_path)
-        self.print_message('<>Updating configuration in <code>%s</code> from <code>%s</code>.'
-                           % (dest_config_path, source_config_path))
+        self.print_html('Updating configuration in <code>%s</code> from <code>%s</code>.'
+                        % (dest_config_path, source_config_path))
 
         merger = XmlTreeMerger(dest_config_path, source_config_path)
         new_xml = merger.merge()
@@ -270,8 +280,8 @@ class BaseAction(metaclass=ActionMeta):
         """
         src_path = self.make_abs_path(src_path)
         dst_dir_path = self.make_abs_path(dst_dir_path)
-        self.print_message('<>Copying file <code>%s</code> to <code>%s</code>.'
-                           % (src_path, dst_dir_path))
+        self.print_html('Copying file <code>%s</code> to <code>%s</code>.'
+                        % (src_path, dst_dir_path))
         if not os.path.exists(src_path):
             raise ValueError('Source path does not exist: %s' % src_path)
         file_name = os.path.split(src_path)[1]
@@ -291,8 +301,8 @@ class BaseAction(metaclass=ActionMeta):
         """
         src_path = self.make_abs_path(src_path)
         dst_path = self.make_abs_path(dst_path)
-        self.print_message('<>Creating symbolic link <code>%s</code> to <code>%s</code>.'
-                           % (dst_path, src_path))
+        self.print_html('Creating symbolic link <code>%s</code> to <code>%s</code>.'
+                        % (dst_path, src_path))
         if not os.path.exists(src_path):
             raise ValueError('Source path does not exist: %s' % src_path)
         if os.path.exists(dst_path):
@@ -304,7 +314,7 @@ class BaseAction(metaclass=ActionMeta):
         """
         if not os.path.exists(file_path):
             return
-        self.print_message('<>Deleting file <code>%s</code>.' % file_path)
+        self.print_html('Deleting file <code>%s</code>.' % file_path)
         if os.path.isdir(file_path):
             dir_util.remove_tree(file_path)
         else:
@@ -316,34 +326,28 @@ class BaseAction(metaclass=ActionMeta):
         assert isinstance(cmd, (str, tuple, list))
         if isinstance(cmd, (tuple, list)):
             cmd = subprocess.list2cmdline(cmd)
-        self.print_message('<><code style="background-color:#CCC">%s</code>' % cmd)
+        self.print_html('<code style="background-color:#CCC">%s</code>' % cmd)
 
         process = subprocess.Popen(cmd, bufsize=0, close_fds=True, shell=True,
                                    stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
 
         output = []
         while True:
-#            time.sleep(0.1)
-#            char = process.stdout.read().decode('utf-8')
-#            if not char:
-#                break
-#            output += char
             line = process.stdout.readline().decode('utf-8')
             if not line:
                 break
             output.append(line)
-            self.print_message(line, end='')
+            self.print_text(line, end='')
             QtGui.QApplication.processEvents()
 
-#        output = '\n'.join(output)
         retcode = process.poll()
         return retcode, output
 
     def request_kde_reload_config(self):
         # https://projects.kde.org/projects/kde/kde-workspace/repository/revisions/master/entry/kcontrol/style/kcmstyle.cpp
         kGlobalSettings = KGlobalSettings.self()
-        self.print_message('<><b style="color:green">Notifying all KDE applications about the '
-                           'global settings change.</b>')
+        self.print_html('<b style="color:green">Notifying all KDE applications about the '
+                        'global settings change.</b>')
         kGlobalSettings.emitChange(KGlobalSettings.StyleChanged)
         kGlobalSettings.emitChange(KGlobalSettings.SettingsChanged)
         kGlobalSettings.emitChange(KGlobalSettings.ToolbarStyleChanged)
@@ -352,9 +356,9 @@ class BaseAction(metaclass=ActionMeta):
         kGlobalSettings.emitChange(KGlobalSettings.IconChanged)
         kGlobalSettings.emitChange(KGlobalSettings.CursorChanged)
 
-#        self.request_kwin_reload_config()
-#        self.request_plasma_reload_config()
-#        self.request_global_accel_reload_config()
+        #        self.request_kwin_reload_config()
+        #        self.request_plasma_reload_config()
+        #        self.request_global_accel_reload_config()
         self.stop_kwin()
         self.stop_plasma()
         self.stop_kglobalaccel()
@@ -364,25 +368,33 @@ class BaseAction(metaclass=ActionMeta):
         self.start_kglobalaccel()
 
     def request_plasma_reload_config(self):
-        self.print_message('Asking plasma to reload its config')
+        self.print_text('Asking plasma to reload its config')
         plasma = dbus.SessionBus().get_object('org.kde.plasma-desktop', '/MainApplication')
         dbus.Interface(plasma, 'org.kde.KApplication').reparseConfiguration()
 
     def _call(self, command, message, signal=None):
-        self.print_message(message)
+        self.print_text(message)
         try:
             with open(os.devnull, 'wb') as dev_null:
                 subprocess.call(command, shell=True, stdout=dev_null, stderr=dev_null)
             if signal:
                 signal.send(None)
         except Exception:
-            self.print_message(traceback.format_exc())
+            self.print_text(traceback.format_exc())
 
     def stop_plasma(self):
         self._call('kquitapp plasma-desktop', 'Stopping Plasma', signals.plasma_stopped)
 
     def start_plasma(self):
         self._call('plasma-desktop &', 'Starting Plasma', signals.plasma_started)
+
+    def restart_plasma(self, immediately=False):
+        if not immediately:
+            signals
+            return
+
+        self.stop_plasma()
+        self.start_plasma()
 
     def stop_kwin(self):
         self._call('kquitapp kwin', 'Stopping Kwin', signals.kwin_stopped)
@@ -391,12 +403,12 @@ class BaseAction(metaclass=ActionMeta):
         self._call('kwin &', 'Starting Kwin', signals.kwin_started)
 
     def request_kwin_reload_config(self):
-        self.print_message('Asking Kwin to reload its config')
+        self.print_text('Asking Kwin to reload its config')
         kwin = dbus.SessionBus().get_object('org.kde.kwin', '/MainApplication')
         dbus.Interface(kwin, 'org.kde.KApplication').reparseConfiguration()
 
     def request_global_accel_reload_config(self):
-        self.print_message('Asking global shortcuts manager to reload its config')
+        self.print_text('Asking global shortcuts manager to reload its config')
         dbus.Interface(dbus.SessionBus().get_object('org.kde.kglobalaccel', '/MainApplication'),
                        'org.kde.KApplication').reparseConfiguration()
 
@@ -409,7 +421,7 @@ class BaseAction(metaclass=ActionMeta):
     def proceed(self):
         """To be reimplemented in subclasses.
         """
-        self.print_message('<><b>Doing nothing</b>')
+        self.print_html('<b>Doing nothing</b>')
 
 
 class ActionSet():

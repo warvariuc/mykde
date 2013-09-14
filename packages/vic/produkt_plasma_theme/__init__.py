@@ -4,20 +4,20 @@ from mykde import BaseAction, signals
 class Action(BaseAction):
 
     name = "Produkt Plasma theme"
-    description = """\
+    description = """
 <a href="http://kde-look.org/content/show.php/?content=124213">Produkt Plasma theme</a><br>
 <br>
 <img src="screenshot.png"/>
 """
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        signals.plasma_stopped.connect(self.proceed2)
-
     def proceed(self):
-        self.print_message('Action will performed when Plasma is stopped.')
+        self.print_text('Action will be performed when Plasma is stopped.')
+        # specifying dispatch_uid to prevent multiple calls
+        signals.plasma_stopped.connect(self._proceed, dispatch_uid=self.__class__)
+        self.restart_plasma(immediately=False)
 
-    def proceed2(self, **kwargs):
+    def _proceed(self, **kwargs):
+        self.print_text('Installing %r' % self.name)
         self.copy_file('./Produkt/',
                        '~/.kde/share/apps/desktoptheme/')
         self.update_kconfig('./plasmarc',

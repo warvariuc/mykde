@@ -4,7 +4,7 @@ from mykde import BaseAction
 class GoogleChrome(BaseAction):
 
     name = "Google Chrome"
-    description = """\
+    description = """
 Google Chrome has out of the box support for:
 <ul>
     <li>proprietary audio/video codecs</li>

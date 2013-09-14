@@ -20,7 +20,7 @@ Ok, you found the offending font. Add it to 'fonts.conf' file.
 class Action(BaseAction):
 
     name = 'Droid fonts everywhere'
-    description = """\
+    description = """
 Droid fonts are used everywhere possible, because they render very nice.<br>
 In browser they should replace Verdana, Arial and other MS fonts.<br>
 <br>
