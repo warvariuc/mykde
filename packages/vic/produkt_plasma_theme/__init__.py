@@ -14,7 +14,7 @@ class Action(BaseAction):
         self.print_text('Action will be performed when Plasma is stopped.')
         # specifying dispatch_uid to prevent multiple calls
         signals.plasma_stopped.connect(self._proceed, dispatch_uid=self.__class__)
-        self.restart_plasma(immediately=False)
+        self.restart_plasma()
 
     def _proceed(self, **kwargs):
         self.print_text('Installing %r' % self.name)

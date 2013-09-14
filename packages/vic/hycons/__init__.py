@@ -14,3 +14,4 @@ class Action(BaseAction):
     def proceed(self):
         self.copy_file('./Hycons', '~/.kde/share/icons/')
         self.update_kconfig('./kdeglobals', '~/.kde/share/config/kdeglobals')
+        # self.restart_plasma()

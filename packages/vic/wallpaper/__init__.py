@@ -18,7 +18,8 @@ This work by <a href="http://si.smugmug.com">Simon Tong</a> is licensed under a
     def proceed(self):
         self.print_text('Action will performed after Plasma is stopped.')
         # specifying dispatch_uid to prevent multiple calls
-        signals.kwin_stopped.connect(self._proceed, dispatch_uid=self.__class__)
+        signals.plasma_stopped.connect(self._proceed, dispatch_uid=self.__class__)
+        self.restart_plasma()
 
     def _proceed(self, **kwargs):
         # https://bugs.kde.org/show_bug.cgi?id=217950

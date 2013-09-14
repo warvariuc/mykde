@@ -6,6 +6,7 @@ import sys
 import time
 import re
 import traceback
+import functools
 
 import dbus
 import apt
@@ -46,10 +47,24 @@ class ActionMeta(type):
         return id(self) == id(other)
 
 
-def on_action_set_proceeded(actions, **kwargs):
-    actions[0].request_kde_reload_config()
+def defer_to_end(method):
 
-signals.action_set_proceeded.connect(on_action_set_proceeded)
+    @functools.wraps(method)
+    def wrapper(self, immediately=False):
+
+        if immediately:
+            return method(self)
+
+        def call_method(**kwargs):
+            try:
+                method(self)
+            finally:
+                signals.action_set_proceeded.disconnect(dispatch_uid=method)
+
+        signals.action_set_proceeded.connect(
+            call_method, dispatch_uid=method, weak=False)
+
+    return wrapper
 
 
 class BaseAction(metaclass=ActionMeta):
@@ -343,6 +358,7 @@ class BaseAction(metaclass=ActionMeta):
         retcode = process.poll()
         return retcode, output
 
+    @defer_to_end
     def request_kde_reload_config(self):
         # https://projects.kde.org/projects/kde/kde-workspace/repository/revisions/master/entry/kcontrol/style/kcmstyle.cpp
         kGlobalSettings = KGlobalSettings.self()
@@ -356,17 +372,7 @@ class BaseAction(metaclass=ActionMeta):
         kGlobalSettings.emitChange(KGlobalSettings.IconChanged)
         kGlobalSettings.emitChange(KGlobalSettings.CursorChanged)
 
-        #        self.request_kwin_reload_config()
-        #        self.request_plasma_reload_config()
-        #        self.request_global_accel_reload_config()
-        self.stop_kwin()
-        self.stop_plasma()
-        self.stop_kglobalaccel()
-        time.sleep(2)  # give time to stop completely
-        self.start_kwin()
-        self.start_plasma()
-        self.start_kglobalaccel()
-
+    @defer_to_end
     def request_plasma_reload_config(self):
         self.print_text('Asking plasma to reload its config')
         plasma = dbus.SessionBus().get_object('org.kde.plasma-desktop', '/MainApplication')
@@ -382,40 +388,34 @@ class BaseAction(metaclass=ActionMeta):
         except Exception:
             self.print_text(traceback.format_exc())
 
-    def stop_plasma(self):
+    @defer_to_end
+    def restart_plasma(self):
         self._call('kquitapp plasma-desktop', 'Stopping Plasma', signals.plasma_stopped)
+        time.sleep(2)  # give time to stop completely
+        self._call('kstart plasma-desktop', 'Starting Plasma', signals.plasma_started)
 
-    def start_plasma(self):
-        self._call('plasma-desktop &', 'Starting Plasma', signals.plasma_started)
-
-    def restart_plasma(self, immediately=False):
-        if not immediately:
-            signals
-            return
-
-        self.stop_plasma()
-        self.start_plasma()
-
-    def stop_kwin(self):
+    @defer_to_end
+    def restart_kwin(self):
         self._call('kquitapp kwin', 'Stopping Kwin', signals.kwin_stopped)
-
-    def start_kwin(self):
+        time.sleep(2)  # give time to stop completely
         self._call('kwin &', 'Starting Kwin', signals.kwin_started)
 
+    @defer_to_end
     def request_kwin_reload_config(self):
         self.print_text('Asking Kwin to reload its config')
         kwin = dbus.SessionBus().get_object('org.kde.kwin', '/MainApplication')
         dbus.Interface(kwin, 'org.kde.KApplication').reparseConfiguration()
 
+    @defer_to_end
     def request_global_accel_reload_config(self):
         self.print_text('Asking global shortcuts manager to reload its config')
         dbus.Interface(dbus.SessionBus().get_object('org.kde.kglobalaccel', '/MainApplication'),
                        'org.kde.KApplication').reparseConfiguration()
 
-    def stop_kglobalaccel(self):
+    @defer_to_end
+    def restart_kglobalaccel(self):
         self._call('kquitapp kglobalaccel', 'Stopping global shortcuts manager')
-
-    def start_kglobalaccel(self):
+        time.sleep(2)  # give time to stop completely
         self._call('kglobalaccel &', 'Starting global shortcuts manager')
 
     def proceed(self):

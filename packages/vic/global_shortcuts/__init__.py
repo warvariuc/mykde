@@ -13,3 +13,4 @@ class Action(BaseAction):
     
     def proceed(self):
         self.update_kconfig('./kglobalshortcutsrc', '~/.kde/share/config/kglobalshortcutsrc')
+        self.restart_kglobalaccel()

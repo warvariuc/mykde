@@ -17,6 +17,7 @@ lines as possible - to make it visually light.<br>
         self.print_text('Action will performed after Kwin is stopped.')
         # specifying dispatch_uid to prevent multiple calls
         signals.kwin_stopped.connect(self._proceed, dispatch_uid=self.__class__)
+        self.restart_kwin()
 
     def _proceed(self, **kwargs):
         self.print_text('Installing %r' % self.name)
