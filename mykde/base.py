@@ -234,7 +234,7 @@ class BaseAction(metaclass=ActionMeta):
         self.print_html('Updating configuration in <code>%s</code> from <code>%s</code>.'
                         % (dest_config_path, source_config_path))
 
-        # http://api.kde.org/4.0-api/kdelibs-apidocs/kdeui/html/classKGlobalSettings.html
+        # http://api.kde.org/4.x-api/kdelibs-apidocs/kdeui/html/classKGlobalSettings.html
         # http://api.kde.org/4.x-api/kdelibs-apidocs/kdecore/html/classKConfig.html
         # http://api.kde.org/4.x-api/kdelibs-apidocs/kdecore/html/classKConfigGroup.html
         # https://projects.kde.org/projects/kde/kdebase/kde-runtime/repository/show/kreadconfig
@@ -417,6 +417,12 @@ class BaseAction(metaclass=ActionMeta):
         self._call('kquitapp kglobalaccel', 'Stopping global shortcuts manager')
         time.sleep(2)  # give time to stop completely
         self._call('kglobalaccel &', 'Starting global shortcuts manager')
+
+    # @defer_to_end
+    # def khotkeys_reload_config(self):
+    #     self.print_text('Asking khotkeys to reload its config')
+    #     kwin = dbus.SessionBus().get_object('org.kde.kded', '/modules/khotkeys')
+    #     dbus.Interface(kwin, 'org.kde.khotkeys').reread_configuration()
 
     def proceed(self):
         """To be reimplemented in subclasses.
