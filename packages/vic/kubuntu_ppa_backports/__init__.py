@@ -12,7 +12,6 @@ These are only final releases of major new versions of KDE and related packages.
 Generally these can be expected to work, but will often be less mature or less tested than versions
 in the official repositories for a release.
 """
-
     repositories = {
         'ppa:kubuntu-ppa/backports': ('', '')
     }

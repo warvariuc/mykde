@@ -19,11 +19,11 @@ Google Chrome has out of the box support for:
 """
 
     repositories = {
-        'google.list': ('deb http://dl.google.com/linux/chrome/deb/ stable main',
-                        'https://dl-ssl.google.com/linux/linux_signing_key.pub')
+        'google-chrome.list': ('deb http://dl.google.com/linux/chrome/deb/ stable main',
+                               'https://dl-ssl.google.com/linux/linux_signing_key.pub')
+        # NOTE: Upon installing Chrome automatically adds its repo to the system
     }
     packages = ['google-chrome-stable']
 
     def proceed(self):
-        self.update_kconfig('./kdeglobals',
-                            '~/.kde/share/config/kdeglobals')
+        self.update_kconfig('./kdeglobals', '~/.kde/share/config/kdeglobals')

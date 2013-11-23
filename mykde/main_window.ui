@@ -28,6 +28,9 @@
         <property name="statusTip">
          <string>Close the window</string>
         </property>
+        <property name="styleSheet">
+         <string notr="true">background-color: rgb(255, 110, 84);</string>
+        </property>
         <property name="text">
          <string>Quit</string>
         </property>
@@ -59,6 +62,9 @@
         </property>
         <property name="statusTip">
          <string>Proceed with the selected actions</string>
+        </property>
+        <property name="styleSheet">
+         <string notr="true">background-color: rgb(20, 209, 10);</string>
         </property>
         <property name="text">
          <string>Proceed</string>
@@ -175,7 +181,7 @@
      <x>0</x>
      <y>0</y>
      <width>808</width>
-     <height>25</height>
+     <height>26</height>
     </rect>
    </property>
   </widget>

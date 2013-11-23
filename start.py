@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 __author__ = "Victor Varvariuc <victor.varvariuc@gmail.com>"
 
+PYTHON_REQUIRED_VERSION = '3.2'  # tested with this version
+
 import os
 import sys
 import subprocess
@@ -19,14 +21,14 @@ def show_error(title, message):
     sys.exit(1)
 
 
-python_required_version = '3.2'  # tested with this version
-if sys.version < python_required_version:
+if sys.version < PYTHON_REQUIRED_VERSION:
     show_error('Bad Python version', 'Python %s or newer required (you are using %s).'
-               % (python_required_version, sys.version.split(' ')[0]))
+               % (PYTHON_REQUIRED_VERSION, sys.version.split(' ')[0]))
 
 if os.geteuid() == 0:  # root privileges
-    show_error('Root detected', 'Do not run this script as root.\n'
-          'Run it as the user in whose session you want to proceed with the actions.')
+    show_error(
+        'Root detected', 'Do not run this script as root.\n'
+        'Run it as the user in whose session you want to proceed with the actions.')
 
 # the distributor's ID
 distro_id = subprocess.check_output(['lsb_release', '--short', '--id'])

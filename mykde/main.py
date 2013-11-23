@@ -85,10 +85,10 @@ class MainWindow(QtGui.QMainWindow, FormClass):
     @QtCore.pyqtSlot()
     def on_aboutButton_clicked(self):
         self.print_html("""
-<hr><div style="background-color:green;color:white;font:bold large">
+<hr><h3 style="color:#268BD2">
 "My KDE" transformer. Author Victor Varvariuc.<br>
-<a href="https://github.com/warvariuc/mykde" style="color:white">Project page here.</a>
-</div><hr>
+<a href="https://github.com/warvariuc/mykde">Project page here.</a>
+</h3><hr>
 """)
 
     @QtCore.pyqtSlot()
@@ -172,22 +172,22 @@ class MainWindow(QtGui.QMainWindow, FormClass):
     @QtCore.pyqtSlot(int)
     def on_actionSetCombo_activated(self, index):
         action_set = self.actionSetCombo.itemData(index)
-        self.print_html('Action set &quot;<b>%s</b>&quot; was selected.' % action_set.name)
-    #    main_window.web_view.setHtml(main_window.actionSetCombo.itemText(index))
+        #self.print_html('Action set &quot;<b>%s</b>&quot; was selected.' % action_set.name)
         if action_set.actions is not None:  # not Custom
             for index in range(self.actionList.count()):
                 item = self.actionList.item(index)
                 action = item.data(QtCore.Qt.UserRole)
-                check_state = QtCore.Qt.Checked if action in action_set.actions else QtCore.Qt.Unchecked
+                check_state = (QtCore.Qt.Checked if action in action_set.actions else
+                               QtCore.Qt.Unchecked)
                 item.setCheckState(check_state)
         self.actionList.setCurrentItem(None)  # reset selection
 
     def on_actionList_itemChanged(self, item):
         """Item checked/unchecked.
         """
-        check_text = 'Checked' if item.checkState() == QtCore.Qt.Checked else 'Unchecked'
-        action = item.data(QtCore.Qt.UserRole)
-        self.print_html('%s action &quot;<b>%s</b>&quot;' % (check_text, action.name))
+        #check_text = 'Checked' if item.checkState() == QtCore.Qt.Checked else 'Unchecked'
+        #action = item.data(QtCore.Qt.UserRole)
+        #self.print_html('%s action &quot;<b>%s</b>&quot;' % (check_text, action.name))
 
         checked_actions = []
         for index in range(self.actionList.count()):
@@ -200,6 +200,14 @@ class MainWindow(QtGui.QMainWindow, FormClass):
             if self.actionSetCombo.itemData(index).actions == checked_actions:
                 break
         self.actionSetCombo.setCurrentIndex(index)
+
+    def on_actionList_doubleClicked(self, modelIndex):
+        """Item double clicked.
+        """
+        for index in range(self.actionList.count()):
+            action_item = self.actionList.item(index)
+            check_state = QtCore.Qt.Checked if index == modelIndex.row() else QtCore.Qt.Unchecked
+            action_item.setCheckState(check_state)
 
     def on_actionList_currentRowChanged(self, index):
         if index == -1:  # no row is selected

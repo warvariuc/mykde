@@ -1,29 +1,17 @@
-MenuBar=Disabled
-
-[CompactMode]
-FontWeight=50
-
-[Desktop Entry]
-DefaultProfile=Shell.profile
-
-[DetailsMode]
-FontWeight=50
-
-[FileMetaDataConfigurationDialog]
-Height 1080=266
-Width 1920=273
-
 [General]
-FirstRun=false
 GlobalViewProps=true
+ShowSpaceInfo=true
 ShowZoomSlider=false
-
-[IconsMode]
-FontWeight=50
 
 [MainWindow]
 MenuBar=Disabled
 ToolBarsMovable=Disabled
+State=AAAA/wAAAAD9AAAAAwAAAAAAAACYAAACb/wCAAAAAvsAAAAWAGYAbwBsAGQAZQByAHMARABvAGMAawAAAAAA/////wAAAAQA////+wAAABQAcABsAGEAYwBlAHMARABvAGMAawEAAAAgAAACbwAAABsA////AAAAAQAAALYAAAHU/AIAAAAB+wAAABAAaQBuAGYAbwBEAG8AYwBrAAAAACAAAAHUAAAABAD///8AAAADAAAAAAAAAAD8AQAAAAH7AAAAGAB0AGUAcgBtAGkAbgBhAGwARABvAGMAawAAAAAA/////wAAAAQA////AAACygAAAm8AAAAEAAAABAAAAAgAAAAI/AAAAAEAAAACAAAAAQAAABYAbQBhAGkAbgBUAG8AbwBsAEIAYQByAQAAAAD/////AAAAAAAAAAA=
+Width 1920=872
+Height 1080=655
 
-[PreviewSettings]
-Plugins=directorythumbnail,imagethumbnail,jpegthumbnail
+[MainWindow][Toolbar mainToolBar]
+ToolButtonStyle=IconOnly
+
+[Notification Messages]
+ConfirmTrash=false
