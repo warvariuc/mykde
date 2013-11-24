@@ -40,15 +40,23 @@ ZSH=$HOME/.oh-my-zsh
 # Which plugins would you like to load? (plugins can be found in ~/.oh-my-zsh/plugins/*)
 # Custom plugins may be added to ~/.oh-my-zsh/custom/plugins/
 # Example format: plugins=(rails git textmate ruby lighthouse)
-plugins=(git)
+#plugins=(git)
 
 source $ZSH/oh-my-zsh.sh
 
-local return_code="%(?..%{$fg[red]%}%?↵ )"
+local return_code="%(?..%{$fg[red]%}%? )"
 
 function virtualenv_info {
-    [ $VIRTUAL_ENV ] && echo '['`basename $VIRTUAL_ENV`'] '
+    [ $VIRTUAL_ENV ] && echo "[$(basename $VIRTUAL_ENV)] "
 }
+export PROJECT_HOME=~/projects/
+export WORKON_HOME=~/projects/venv
+#export VIRTUALENVWRAPPER_PYTHON=/usr/bin/python3
+export VIRTUAL_ENV_DISABLE_PROMPT=1
+
+if [ -f "$(which virtualenvwrapper_lazy.sh)" ]; then
+    source $(which virtualenvwrapper_lazy.sh)
+fi
 
 PROMPT='%B${return_code}%{$fg[green]%}$(virtualenv_info)%{$fg[grey]%}%n@%m %{$fg[yellow]%}${PWD/#$HOME/~} $(git_prompt_info)%{$fg[white]%}$%b '
 RPS1=""
@@ -57,20 +65,11 @@ ZSH_THEME_GIT_PROMPT_PREFIX="%{$fg[blue]%}("
 ZSH_THEME_GIT_PROMPT_SUFFIX="%{$fg[blue]%}) "
 ZSH_THEME_GIT_PROMPT_DIRTY="%{$fg[yellow]%} *"
 
-# Customize to your needs...
-# export PATH=$PATH:/usr/lib/x86_64-linux-gnu/qt4/bin:/usr/lib/lightdm/lightdm:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games
-
-if [ -f /usr/local/bin/virtualenvwrapper.sh ]; then
-    export PROJECT_HOME=~/projects/
-    export WORKON_HOME=~/projects/.venv
-#    export VIRTUALENVWRAPPER_PYTHON=/usr/bin/python3
-    export VIRTUAL_ENV_DISABLE_PROMPT=1
-    source /usr/local/bin/virtualenvwrapper.sh
-fi
-
 export EDITOR=emacs
 export MANPAGER="/usr/bin/most -s"
 
 disable -r time       # disable shell reserved word
 
-source ~/projects/devenv.sh
+if [ -f ~/projects/devenv.sh ]; then
+    source ~/projects/devenv.sh
+fi

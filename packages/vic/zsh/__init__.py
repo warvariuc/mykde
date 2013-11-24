@@ -9,4 +9,5 @@ class Action(BaseAction):
 
     def proceed(self):
         self.copy_file('./.zshrc', '~/')
-        # TODO: set zsh as default shell: chsh -s $(which zsh)
+        self.call('git clone git://github.com/robbyrussell/oh-my-zsh.git ~/.oh-my-zsh')
+        self.kdesudo('chsh -s $(which zsh) $USER', 'Confirm user shell change')
