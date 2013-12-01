@@ -53,10 +53,7 @@ export PROJECT_HOME=~/projects/
 export WORKON_HOME=~/projects/venv
 #export VIRTUALENVWRAPPER_PYTHON=/usr/bin/python3
 export VIRTUAL_ENV_DISABLE_PROMPT=1
-
-if [ -f "$(which virtualenvwrapper_lazy.sh)" ]; then
-    source $(which virtualenvwrapper_lazy.sh)
-fi
+. virtualenvwrapper_lazy.sh 2>/dev/null
 
 PROMPT='%B${return_code}%{$fg[green]%}$(virtualenv_info)%{$fg[grey]%}%n@%m %{$fg[yellow]%}${PWD/#$HOME/~} $(git_prompt_info)%{$fg[white]%}$%b '
 RPS1=""
