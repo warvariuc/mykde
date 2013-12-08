@@ -97,12 +97,13 @@ class BaseAction(metaclass=ActionMeta):
         # check if file exists
         for repo_name, (repo_url, public_key_url) in repositories.items():
             assert isinstance(repo_name, str)
-            assert re.match(r'[a-zA-Z0-9_\-\.]+\.list ', repo_name), 'man sources.list'
             assert isinstance(public_key_url, str)
             assert isinstance(repo_url, str)
             if repo_name.startswith('ppa:'):
                 commands.append('add-apt-repository --yes %s' % repo_name)
                 continue
+            assert re.match(  # man sources.list
+                r'[a-zA-Z0-9_\-\.]+\.list', repo_name), 'Invalid repo name: %r' % repo_name
             repo_path = os.path.join('/etc/apt/sources.list.d/', repo_name)
             if os.path.isfile(repo_path):
                 with open(repo_path) as repo_file:
