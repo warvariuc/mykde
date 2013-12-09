@@ -5,7 +5,7 @@ class Action(BaseAction):
 
     name = "Useful apps"
     packages = ['p7zip-full', 'speedcrunch', 'kolourpaint4', 'pavucontrol', 'overlay-scrollbar',
-                'kwrite', 'openjdk-7-jdk']
+                'kwrite']
     description = """
 Some useful applications:
 <ul>

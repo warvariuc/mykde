@@ -5,7 +5,7 @@ class Action(BaseAction):
 
     name = 'Zsh'
     description = "Zsh with oh-my-zsh"
-    packages = ['git', 'zsh']
+    packages = ['git', 'zsh', 'most']
 
     def proceed(self):
         self.copy_file('./.zshrc', '~/')

@@ -429,7 +429,8 @@ class BaseAction(metaclass=ActionMeta):
     def proceed(self):
         """To be reimplemented in subclasses.
         """
-        self.print_html('<b>Doing nothing</b>')
+        pass
+        # self.print_html('<b>Doing nothing</b>')
 
 
 class ActionSet():

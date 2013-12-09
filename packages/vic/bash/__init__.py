@@ -25,7 +25,7 @@ class Action(BaseAction):
         bashrc_path = os.path.expanduser('~/.bashrc')
 
         # set color prompt
-        self.update_text(bashrc_path, r"""
+        self.add_text(bashrc_path, r"""
 # enable color prompt with git and virtualenv marks
 blackf=$(tput setaf 0)
 green=$(tput setaf 2)
