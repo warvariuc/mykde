@@ -264,7 +264,7 @@ class BaseAction(metaclass=ActionMeta):
     #        if bkpCfgPath:
     #            bkp_cfg.sync()
 
-    def update_xmlconfig(self, source_config_path, dest_config_path):
+    def update_xmlconfig(self, source_config_path, dest_config_path, default_config_path=''):
         """Update an XML configuration file
         @param source_config_path: relative path to the source configuration file
         @param dest_config_path: path to the file to apply patch to
@@ -277,6 +277,11 @@ class BaseAction(metaclass=ActionMeta):
         dest_config_path = self.make_abs_path(dest_config_path)
         self.print_html('Updating configuration in <code>%s</code> from <code>%s</code>.'
                         % (dest_config_path, source_config_path))
+
+        if not os.path.exists(dest_config_path):
+            assert default_config_path, 'Default configuration path must be specified'
+            assert os.path.basename(dest_config_path) == os.path.basename(default_config_path)
+            self.copy_file(default_config_path, os.path.dirname(dest_config_path))
 
         merger = XmlTreeMerger(dest_config_path, source_config_path)
         new_xml = merger.merge()

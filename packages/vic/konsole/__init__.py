@@ -4,7 +4,8 @@ from mykde import BaseAction
 class Action(BaseAction):
 
     name = 'Konsole settings'
-    description = """Custom settings for Konsole:
+    description = """
+Custom settings for Konsole:
 - custom color theme
 - Ctrl+Shift+X - to clear scrollback and reset
 - Ctrl+PageDown/PageUp - to switch to next/previous tab
@@ -18,6 +19,8 @@ class Action(BaseAction):
         self.update_kconfig('./Shell.profile',
                             '~/.kde/share/apps/konsole/Shell.profile')
         self.update_xmlconfig('./konsoleui.rc',
-                              '~/.kde/share/apps/konsole/konsoleui.rc')
+                              '~/.kde/share/apps/konsole/konsoleui.rc',
+                              '/usr/share/kde4/apps/konsole/konsoleui.rc')
         self.update_xmlconfig('./sessionui.rc',
-                              '~/.kde/share/apps/konsole/konsole/sessionui.rc')
+                              '~/.kde/share/apps/konsole/konsole/sessionui.rc',
+                              '/usr/share/kde4/apps/konsole/sessionui.rc')

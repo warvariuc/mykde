@@ -1,4 +1,3 @@
-<!DOCTYPE kpartgui>
 <kpartgui name="konsole">
  <ActionProperties scheme="Default">
   <Action shortcut="Ctrl+PgDown" name="next-view"/>
