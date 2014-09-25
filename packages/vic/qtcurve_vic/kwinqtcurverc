@@ -1,5 +1,8 @@
 [ActiveShadows]
-ColorType=4
+Color=82,80,75
+ColorType=5
+Size=80
+VOffset=0
 
 [General]
 BorderSize=3
@@ -9,3 +12,5 @@ OuterBorder=0
 
 [InactiveShadows]
 ShadowType=0
+Size=50
+VOffset=0

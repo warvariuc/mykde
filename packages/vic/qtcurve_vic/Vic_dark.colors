@@ -76,7 +76,7 @@ ForegroundVisited=100,74,155
 
 [Colors:Window]
 BackgroundAlternate=218,217,216
-BackgroundNormal=234,230,228
+BackgroundNormal=213,209,207
 DecorationFocus=74,122,205
 DecorationHover=110,214,255
 ForegroundActive=255,128,224
@@ -89,13 +89,17 @@ ForegroundPositive=0,110,40
 ForegroundVisited=100,74,155
 
 [General]
-ColorScheme=classic_blue
+ColorScheme=vic_dark
+Name=vic_dark
 shadeSortColumn=true
-widgetStyle=qtcurve
+
+[KDE]
+contrast=7
 
 [WM]
-activeBackground=206,221,255
-activeFont=Droid Sans,10,-1,5,50,0,0,0,0,0
-activeForeground=1,1,1
-inactiveBackground=224,223,222
-inactiveForeground=75,71,67
+activeBackground=48,48,48
+activeBlend=1,1,1
+activeForeground=220,220,220
+inactiveBackground=88,88,88
+inactiveBlend=75,71,67
+inactiveForeground=195,195,195
