@@ -10,10 +10,11 @@ Size=50
 VOffset=0
 
 [KWin]
-BorderSize=3
+BorderSize=0
 CustomShadows=true
 InnerBorder=0
 OuterBorder=0
+RoundBottom=false
 
 [Settings]
 activeTabAppearance=gradient
@@ -151,7 +152,7 @@ thinSbarGroove=false
 titlebarAlignment=center
 titlebarAppearance=soft
 titlebarButtonAppearance=flat
-titlebarButtons=10
+titlebarButtons=12
 titlebarEffect=none
 titlebarIcon=menu
 toolbarAppearance=flat
@@ -166,7 +167,7 @@ useHighlightForMenu=true
 useQtFileDialogApps=googleearth-bin
 vArrows=false
 version=1.8.14
-windowBorder=32
+windowBorder=33
 windowDrag=0
 xCheck=false
 xbar=false

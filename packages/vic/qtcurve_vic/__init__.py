@@ -3,7 +3,7 @@ from mykde import BaseAction, signals
 
 class Action(BaseAction):
 
-    name = "Classic Blue"
+    name = "QtCurve Vic theme for widgets and windows"
     author = 'Victor Varvariuc'
     description = """
 Custom widget (QtCurve) and color themes. I tried to make the QtCurve theme to contain is little

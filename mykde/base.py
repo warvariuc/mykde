@@ -7,6 +7,7 @@ import time
 import re
 import traceback
 import functools
+import shlex
 
 import dbus
 import apt
@@ -14,6 +15,7 @@ from distutils import dir_util, file_util
 from PyQt4 import QtGui, QtCore
 from PyKDE4.kdecore import KConfig
 from PyKDE4.kdeui import KGlobalSettings
+import pexpect
 
 from . import signals
 from .xml_tree_merge import XmlTreeMerger
@@ -342,27 +344,31 @@ class BaseAction(metaclass=ActionMeta):
         else:
             os.remove(file_path)
 
-    def call(self, cmd):
+    def call(self, args):
         """Run a program.
         """
-        assert isinstance(cmd, (str, tuple, list))
-        if isinstance(cmd, (tuple, list)):
-            cmd = subprocess.list2cmdline(cmd)
-        self.print_html('<code style="background-color:#CCC">%s</code>' % cmd)
+        if isinstance(args, str):
+            args = shlex.split(args)
+        else:
+            assert isinstance(args, (tuple, list))
+        self.print_html('<code style="background-color:#CCC">%s</code>' % args)
 
-        process = subprocess.Popen(cmd, bufsize=0, close_fds=True, shell=True,
-                                   stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+        process = pexpect.spawn(args[0], args[1:])
 
         output = []
-        while True:
-            line = process.stdout.readline().decode('utf-8')
+        while process.isalive():
+            try:
+                process.expect([process.crlf, pexpect.EOF], timeout=0.1)
+            except pexpect.TIMEOUT:
+                QtGui.QApplication.processEvents()
+                continue
+            line = process.before.decode('utf-8')
             if not line:
                 break
             output.append(line)
-            self.print_text(line, end='')
-            QtGui.QApplication.processEvents()
+            self.print_text(line)
 
-        retcode = process.poll()
+        retcode = process.exitstatus
         return retcode, output
 
     @defer_to_end

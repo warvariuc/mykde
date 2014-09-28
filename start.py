@@ -1,11 +1,12 @@
 #!/usr/bin/env python3
 __author__ = "Victor Varvariuc <victor.varvariuc@gmail.com>"
 
-PYTHON_REQUIRED_VERSION = '3.2'  # tested with this version
+PYTHON_REQUIRED_VERSION = '3.4'  # tested with this version
 
 import os
 import sys
 import subprocess
+import shlex
 
 
 cur_dir = os.path.dirname(os.path.abspath(__file__))
@@ -31,20 +32,19 @@ if os.geteuid() == 0:  # root privileges
         'Run it as the user in whose session you want to proceed with the actions.')
 
 # the distributor's ID
-distro_id = subprocess.check_output(['lsb_release', '--short', '--id'])
+distro_id = subprocess.check_output(shlex.split('lsb_release --short --id'))
 distro_id = distro_id.decode().strip().lower()
 if distro_id != 'ubuntu':
     show_error('Wrong distro', 'Ubuntu not found:\n%s.' % distro_id)
 
 # the release number of the currently installed distribution
-distro_release_id = subprocess.check_output(['lsb_release', '--short', '--release'])
+distro_release_id = subprocess.check_output(shlex.split('lsb_release --short --release'))
 distro_release_id = distro_release_id.decode().strip()
-if distro_id < '12.10':
-    show_error('Wrong release', 'Need Ubuntu 12.10 or later.')
+if distro_id < '14.04':
+    show_error('Wrong release', 'Need Ubuntu 14.04 or later.')
 
 try:
-    import PyQt4
-    import PyKDE4
+    import PyQt4, PyKDE4
 except ImportError:
     show_error('PyQt4/PyKDE4', 'PyQt4/PyKDE4 libraries are not available')
 

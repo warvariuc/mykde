@@ -4,7 +4,7 @@ CommandAllKey=Meta
 [Style]
 BorderSize=1
 ButtonsOnLeft=M
-ButtonsOnRight=HIAX
+ButtonsOnRight=IAX
 CustomButtonPositions=true
 PluginLib=kwin3_qtcurve
 ShowToolTips=false
