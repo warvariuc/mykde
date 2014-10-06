@@ -5,12 +5,15 @@ Size=80
 VOffset=0
 
 [General]
-BorderSize=0
+BorderSize=2
 CustomShadows=true
 InnerBorder=0
 OuterBorder=0
+RoundBottom=false
 
 [InactiveShadows]
+Color=82,80,75
+ColorType=5
 ShadowType=0
 Size=50
 VOffset=0
