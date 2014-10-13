@@ -9,14 +9,13 @@ from pkgutil import iter_modules
 from PyQt4 import QtCore, QtGui, uic
 from PyKDE4 import kdecore
 
-from . import ActionSet, BaseAction, get_object_by_path, get_object_path
+from . import ActionSet, BaseAction
 from . import signals
 
 
 def walk_modules(path):
-    """Loads a module and all its submodules from a the given module path and
-    returns them. If *any* module throws an exception while importing, that
-    exception is thrown back.
+    """Loads a module and all its submodules from a the given module path and returns them.
+    If *any* module throws an exception while importing, that exception is thrown back.
     For example: walk_modules('scrapy.utils')
     """
     modules = []
@@ -34,8 +33,7 @@ def walk_modules(path):
 
 
 def iter_classes(module, klass):
-    """
-    Return an iterator over all klass subclasses defined in the given module
+    """Return an iterator over all klass subclasses defined in the given module.
     """
     for obj in vars(module).values():
         if isinstance(obj, type) and issubclass(obj, klass) and obj.__module__ == module.__name__:
@@ -145,9 +143,6 @@ class MainWindow(QtGui.QMainWindow, FormClass):
                 item.setFlags(QtCore.Qt.ItemIsSelectable | QtCore.Qt.ItemIsUserCheckable
                               | QtCore.Qt.ItemIsEnabled)
                 item.setCheckState(QtCore.Qt.Checked)
-                # item.setToolTip('<div>%s</div>' % action.description.strip())
-                # item.setStatusTip(action.description)
-                item.setStatusTip('Click to see action description')
                 item.setData(QtCore.Qt.UserRole, action)
                 self.actionList.addItem(item)
 
@@ -172,7 +167,6 @@ class MainWindow(QtGui.QMainWindow, FormClass):
     @QtCore.pyqtSlot(int)
     def on_actionSetCombo_activated(self, index):
         action_set = self.actionSetCombo.itemData(index)
-        #self.print_html('Action set &quot;<b>%s</b>&quot; was selected.' % action_set.name)
         if action_set.actions is not None:  # not Custom
             for index in range(self.actionList.count()):
                 item = self.actionList.item(index)
@@ -185,10 +179,6 @@ class MainWindow(QtGui.QMainWindow, FormClass):
     def on_actionList_itemChanged(self, item):
         """Item checked/unchecked.
         """
-        #check_text = 'Checked' if item.checkState() == QtCore.Qt.Checked else 'Unchecked'
-        #action = item.data(QtCore.Qt.UserRole)
-        #self.print_html('%s action &quot;<b>%s</b>&quot;' % (check_text, action.name))
-
         checked_actions = []
         for index in range(self.actionList.count()):
             action_item = self.actionList.item(index)
@@ -196,13 +186,14 @@ class MainWindow(QtGui.QMainWindow, FormClass):
                 action = action_item.data(QtCore.Qt.UserRole)
                 checked_actions.append(action)
         checked_actions.sort()
+        index = -1
         for index in range(self.actionSetCombo.count()):
             if self.actionSetCombo.itemData(index).actions == checked_actions:
                 break
         self.actionSetCombo.setCurrentIndex(index)
 
     def on_actionList_doubleClicked(self, modelIndex):
-        """Item double clicked.
+        """Item double-clicked.
         """
         for index in range(self.actionList.count()):
             action_item = self.actionList.item(index)

@@ -24,8 +24,8 @@ from .xml_tree_merge import XmlTreeMerger
 class ActionMeta(type):
     """Action metaclass to make Action subclasses sortable.
     """
-    def __new__(cls, name, bases, attrs):
-        action = type.__new__(cls, name, bases, attrs)
+    def __new__(mcs, name, bases, attrs):
+        action = type.__new__(mcs, name, bases, attrs)
 
         action.action_dir = os.path.dirname(sys.modules[action.__module__].__file__)
 
@@ -63,8 +63,7 @@ def defer_to_end(method):
             finally:
                 signals.action_set_proceeded.disconnect(dispatch_uid=method)
 
-        signals.action_set_proceeded.connect(
-            call_method, dispatch_uid=method, weak=False)
+        signals.action_set_proceeded.connect(call_method, dispatch_uid=method, weak=False)
 
     return wrapper
 
@@ -141,7 +140,9 @@ class BaseAction(metaclass=ActionMeta):
 
     def install_packages(self, package_names):
         """apt-get install packages, which are not yet installed
-        @param package_names: list of package names to install
+
+        Args:
+            package_names (list): names of the packages to install
         """
         assert isinstance(package_names, (list, tuple))
         if not package_names:
@@ -198,8 +199,6 @@ class BaseAction(metaclass=ActionMeta):
             return False
 
         self.print_html('<b style="color:green">The packages were successfully installed.</b>')
-        #        QtGui.QMessageBox.information(self.main_window, 'Packages were installed',
-        #                'The packages were sucessfully installed.')
         return True
 
     def kdesudo(self, command, comment):
@@ -225,9 +224,11 @@ class BaseAction(metaclass=ActionMeta):
         return file_path
 
     def update_kconfig(self, source_config_path, dest_config_path):
-        """Update a configuration file which is in format of kconfig
-        @param source_config_path: relative path to the source configuration file
-        @param dest_config_path: path to the file to apply patch to
+        """Update a configuration file which is in format of kconfig.
+
+        Args:
+            source_config_path (str): relative path to the source configuration file
+            dest_config_path (str): path to the file to apply patch to
         """
         assert isinstance(source_config_path, str)
         assert isinstance(dest_config_path, str)
@@ -268,8 +269,10 @@ class BaseAction(metaclass=ActionMeta):
 
     def update_xmlconfig(self, source_config_path, dest_config_path, default_config_path=''):
         """Update an XML configuration file
-        @param source_config_path: relative path to the source configuration file
-        @param dest_config_path: path to the file to apply patch to
+
+        Args:
+            source_config_path (str): relative path to the source configuration file
+            dest_config_path (str): path to the file to apply patch to
         """
         assert isinstance(source_config_path, str)
         assert isinstance(dest_config_path, str)
@@ -298,9 +301,12 @@ class BaseAction(metaclass=ActionMeta):
 
     def copy_file(self, src_path, dst_dir_path):
         """Copy a single file/directory to another directory.
-        @param src_path: path of the file/directory to copy
-        @param dst_dir_path: path of the destination directory
-        @return: path of the copied file
+
+        Args:
+            src_path (str): path of the file/directory to copy
+            dst_dir_path (str): path of the destination directory
+        Returns:
+            str: path of the copied file
         """
         src_path = self.make_abs_path(src_path)
         dst_dir_path = self.make_abs_path(dst_dir_path)
@@ -320,8 +326,10 @@ class BaseAction(metaclass=ActionMeta):
 
     def create_symlink(self, src_path, dst_path):
         """Create a symlink.
-        @param src_path: path of the file/directory to which the created symlink will point
-        @param dst_path: path of the symbolic link to create
+
+        Args:
+            src_path (str): path of the file/directory to which the created symlink will point
+            dst_path (str): path of the symbolic link to create
         """
         src_path = self.make_abs_path(src_path)
         dst_path = self.make_abs_path(dst_path)
