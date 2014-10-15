@@ -92,7 +92,7 @@ ForegroundPositive=0,110,40
 ForegroundVisited=100,74,155
 
 [General]
-ColorScheme=vic_dark
+ColorScheme=vic
 shadeSortColumn=true
 widgetStyle=qtcurve
 

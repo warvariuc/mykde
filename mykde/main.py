@@ -140,8 +140,8 @@ class MainWindow(QtGui.QMainWindow, FormClass):
             for action in iter_classes(module, BaseAction):
                 item = QtGui.QListWidgetItem(action.name)
                 all_actions.append(action)
-                item.setFlags(QtCore.Qt.ItemIsSelectable | QtCore.Qt.ItemIsUserCheckable
-                              | QtCore.Qt.ItemIsEnabled)
+                item.setFlags(QtCore.Qt.ItemIsSelectable | QtCore.Qt.ItemIsUserCheckable |
+                              QtCore.Qt.ItemIsEnabled)
                 item.setCheckState(QtCore.Qt.Checked)
                 item.setData(QtCore.Qt.UserRole, action)
                 self.actionList.addItem(item)
@@ -157,7 +157,7 @@ class MainWindow(QtGui.QMainWindow, FormClass):
         action_sets = [AllActionSet, NoneActionSet]
         for action_set in iter_classes(importlib.import_module(package_path), ActionSet):
             action_sets.append(action_set)
-        action_sets.append(CustomActionSet)  # at the end
+        action_sets.append(CustomActionSet)  # custom set at the end
         for action_set in action_sets:
             if action_set.actions is not None:
                 action_set.actions.sort()
