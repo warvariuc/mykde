@@ -1,7 +1,7 @@
-from mykde import BaseAction, signals
+import mykde
 
 
-class Action(BaseAction):
+class Action(mykde.BaseAction):
 
     name = "QtCurve Vic theme and colors for widgets and windows"
     author = 'Victor Varvariuc'
@@ -13,13 +13,9 @@ lines as possible - to make it visually light.<br>
 """
     packages = ['qtcurve', 'fonts-droid']
 
-    def proceed(self):
-        self.print_text('Action will performed after Kwin is stopped.')
-        # specifying dispatch_uid to prevent multiple calls
-        signals.kwin_stopped.connect(self._proceed, dispatch_uid=self.__class__)
-        self.restart_kwin()
+    affects = [mykde.Kwin]
 
-    def _proceed(self, **kwargs):
+    def proceed(self):
         self.print_text('Installing %r' % self.name)
         self.copy_file('./vic.qtcurve', '~/.kde/share/apps/QtCurve/')
         self.copy_file('./Vic.colors', '~/.kde/share/apps/color-schemes/')

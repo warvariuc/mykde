@@ -1,7 +1,7 @@
-from mykde import BaseAction
+import mykde
 
 
-class Action(BaseAction):
+class Action(mykde.BaseAction):
 
     name = "Open Java Runtime Environment 7"
     packages = ['openjdk-7-jre']

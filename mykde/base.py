@@ -49,25 +49,6 @@ class ActionMeta(type):
         return id(self) == id(other)
 
 
-def defer_to_end(method):
-
-    @functools.wraps(method)
-    def wrapper(self, immediately=False):
-
-        if immediately:
-            return method(self)
-
-        def call_method(**kwargs):
-            try:
-                method(self)
-            finally:
-                signals.action_set_proceeded.disconnect(dispatch_uid=method)
-
-        signals.action_set_proceeded.connect(call_method, dispatch_uid=method, weak=False)
-
-    return wrapper
-
-
 class BaseAction(metaclass=ActionMeta):
     """Base class for user actions.
     """
@@ -79,11 +60,16 @@ class BaseAction(metaclass=ActionMeta):
     repositories = {}
     # list of package names to install
     packages = []
+    affects = []
     action_dir = ''  # directory of the action class to compute absolute paths in description
 
     def __init__(self, main_window):
-        assert isinstance(main_window, QtGui.QMainWindow)
+        from .main import MainWindow
+        assert isinstance(main_window, MainWindow)
         self.main_window = main_window
+
+    def __str__(self):
+        return '%s.%s' % (self.__class__.__module__, self.__class__.__name__)
 
     def print_text(self, message, end='\n'):
         self.main_window.print_text(message, end=end)
@@ -146,18 +132,8 @@ class BaseAction(metaclass=ActionMeta):
         """
         assert isinstance(package_names, (list, tuple))
         if not package_names:
-            self.print_text('No packages required to install.')
+            self.print_html('<b style="color:green">No packages required to install.</b>')
             return True
-
-        self.print_html('<b style="color:#B08000">Updating package index:</b>')
-        retcode = self.kdesudo('apt-get update', 'Updating package index')
-        if retcode:
-            self.print_html('<b style="color:red">An error happened while updating package '
-                            'index .</b>')
-            return False
-
-        self.print_html('<b style="color:green">The package index was sucessfully '
-                        'updated.</b>')
 
         packages = {package_name: None for package_name in package_names}
 
@@ -177,6 +153,16 @@ class BaseAction(metaclass=ActionMeta):
             self.print_html('<b style="color:green">All required packages are already '
                             'installed</b>')
             return True
+
+        self.print_html('<b style="color:#B08000">Updating package index:</b>')
+        retcode = self.kdesudo('apt-get update', 'Updating package index')
+        if retcode:
+            self.print_html('<b style="color:red">An error happened while updating package '
+                            'index .</b>')
+            return False
+
+        self.print_html('<b style="color:green">The package index was sucessfully '
+                        'updated.</b>')
 
         message = 'These additional packages must be installed:<ul>'
         for package_name, package_summary in sorted(packages.items()):
@@ -205,7 +191,7 @@ class BaseAction(metaclass=ActionMeta):
         retcode, msg = self.call(['kdesudo', '--comment', comment, '-c', command])
         return retcode
 
-    def open_konsole(self, text):
+    def run_konsole(self, text):
         """Open a Konsole and type text in it.
         """
         bus = dbus.SessionBus()
@@ -352,16 +338,31 @@ class BaseAction(metaclass=ActionMeta):
         else:
             os.remove(file_path)
 
-    def call(self, args):
-        """Run a program.
-        """
-        if isinstance(args, str):
-            args = shlex.split(args)
-        else:
-            assert isinstance(args, (tuple, list))
-        self.print_html('<code style="background-color:#CCC">%s</code>' % args)
+    def call(self, command, message=''):
+        """Run a [terminal] command.
 
-        process = pexpect.spawn(args[0], args[1:])
+        Args:
+            command (str, callable): a command to run via subprocess or a callable to call passing
+                it main_window as an argument
+            message (str): additional text to print before executing the command
+        """
+        if not command:
+            return
+
+        if message:
+            self.print_text(message)
+
+        if callable(command):
+            return command(self.main_window)
+
+        if isinstance(command, str):
+            command = shlex.split(command)
+        else:
+            assert isinstance(command, (tuple, list))
+        self.print_html('<code style="background-color:#CCC">%s</code>'
+                        % " ".join(map(shlex.quote, command)))
+
+        process = pexpect.spawn(command[0], command[1:])
 
         output = []
         while process.isalive():
@@ -379,12 +380,85 @@ class BaseAction(metaclass=ActionMeta):
         retcode = process.exitstatus
         return retcode, output
 
-    @defer_to_end
-    def request_kde_reload_config(self):
+    def proceed(self):
+        """To be reimplemented in subclasses.
+        """
+
+
+class ActionSet:
+    """Action set properties: description, actions contained in the set, etc.
+    """
+    name = ''
+    description = ''  # html description
+    actions = []  # list of action names contained in this action set
+
+
+class ActionPackage:
+    """Action package properties: desription, author, etc.
+    """
+    author = ''
+    version = 0
+    description = ''  # html description
+
+
+class App:
+    """Base class for KDE apps.
+    """
+    name = ''  # descriptive name of the app
+    stop = ''  # command to stop the app
+    start = ''  # command to start the app
+
+
+class Plasma(App):
+
+    name = 'Plasma'
+    stop = 'kquitapp plasma-desktop'
+    start = 'kstart plasma-desktop'
+
+    @staticmethod
+    def reload_config(action):
+        action.print_text('Asking plasma to reload its config')
+        plasma = dbus.SessionBus().get_object('org.kde.plasma-desktop', '/MainApplication')
+        dbus.Interface(plasma, 'org.kde.KApplication').reparseConfiguration()
+
+
+class Kwin(App):
+
+    name = 'Kwin'
+    stop = 'kquitapp kwin'
+    start = 'kstart kwin'
+
+    @staticmethod
+    def reload_config(action):
+        action.print_text('Asking Kwin to reload its config')
+        kwin = dbus.SessionBus().get_object('org.kde.kwin', '/MainApplication')
+        dbus.Interface(kwin, 'org.kde.KApplication').reparseConfiguration()
+
+
+class KGlobalAccel(App):
+
+    name = 'Global shortcuts manager'
+    stop = 'kquitapp kglobalaccel'
+    start = 'kstart kglobalaccel'
+
+    @staticmethod
+    def reload_config(action):
+        action.print_text('Asking global shortcuts manager to reload its config')
+        dbus.Interface(dbus.SessionBus().get_object('org.kde.kglobalaccel', '/MainApplication'),
+                       'org.kde.KApplication').reparseConfiguration()
+
+
+class KdeSettings(App):
+
+    name = 'KDE settings'
+
+    @staticmethod
+    def start():
         # https://projects.kde.org/projects/kde/kde-workspace/repository/revisions/master/entry/kcontrol/style/kcmstyle.cpp
         kGlobalSettings = KGlobalSettings.self()
-        self.print_html('<b style="color:green">Notifying all KDE applications about the '
-                        'global settings change.</b>')
+        main.main_window.print_html(
+            '<b style="color:green">Notifying all KDE applications about the '
+            'global settings change.</b>')
         kGlobalSettings.emitChange(KGlobalSettings.StyleChanged)
         kGlobalSettings.emitChange(KGlobalSettings.SettingsChanged)
         kGlobalSettings.emitChange(KGlobalSettings.ToolbarStyleChanged)
@@ -393,77 +467,11 @@ class BaseAction(metaclass=ActionMeta):
         kGlobalSettings.emitChange(KGlobalSettings.IconChanged)
         kGlobalSettings.emitChange(KGlobalSettings.CursorChanged)
 
-    @defer_to_end
-    def request_plasma_reload_config(self):
-        self.print_text('Asking plasma to reload its config')
-        plasma = dbus.SessionBus().get_object('org.kde.plasma-desktop', '/MainApplication')
-        dbus.Interface(plasma, 'org.kde.KApplication').reparseConfiguration()
 
-    def _call(self, command, message, signal=None):
-        self.print_text(message)
-        try:
-            with open(os.devnull, 'wb') as dev_null:
-                subprocess.call(command, shell=True, stdout=dev_null, stderr=dev_null)
-            if signal:
-                signal.send(None)
-        except Exception:
-            self.print_text(traceback.format_exc())
+class KHotKeys(App):
 
-    @defer_to_end
-    def restart_plasma(self):
-        self._call('kquitapp plasma-desktop', 'Stopping Plasma', signals.plasma_stopped)
-        time.sleep(2)  # give time to stop completely
-        self._call('kstart plasma-desktop', 'Starting Plasma', signals.plasma_started)
-
-    @defer_to_end
-    def restart_kwin(self):
-        self._call('kquitapp kwin', 'Stopping Kwin', signals.kwin_stopped)
-        time.sleep(2)  # give time to stop completely
-        self._call('kwin &', 'Starting Kwin', signals.kwin_started)
-
-    @defer_to_end
-    def request_kwin_reload_config(self):
-        self.print_text('Asking Kwin to reload its config')
-        kwin = dbus.SessionBus().get_object('org.kde.kwin', '/MainApplication')
-        dbus.Interface(kwin, 'org.kde.KApplication').reparseConfiguration()
-
-    @defer_to_end
-    def request_global_accel_reload_config(self):
-        self.print_text('Asking global shortcuts manager to reload its config')
-        dbus.Interface(dbus.SessionBus().get_object('org.kde.kglobalaccel', '/MainApplication'),
-                       'org.kde.KApplication').reparseConfiguration()
-
-    @defer_to_end
-    def restart_kglobalaccel(self):
-        self._call('kquitapp kglobalaccel', 'Stopping global shortcuts manager')
-        time.sleep(2)  # give time to stop completely
-        self._call('kglobalaccel &', 'Starting global shortcuts manager')
-
-    # @defer_to_end
-    # def khotkeys_reload_config(self):
-    #     self.print_text('Asking khotkeys to reload its config')
-    #     kwin = dbus.SessionBus().get_object('org.kde.kded', '/modules/khotkeys')
-    #     dbus.Interface(kwin, 'org.kde.khotkeys').reread_configuration()
-
-    def proceed(self):
-        """To be reimplemented in subclasses.
-        """
-        pass
-        # self.print_html('<b>Doing nothing</b>')
-
-
-class ActionSet():
-    """Action set properties: description, actions contained in the set, etc.
-    """
-    name = ''
-    description = ''  # html description
-    actions = []  # list of action names contained in this action set
-
-
-class ActionPackage():
-    """Action package properties: desription, author, etc.
-    """
-    author = ''
-    version = 0
-    description = ''  # html description
-
+    @staticmethod
+    def reload_config(action):
+        action.print_text('Asking khotkeys to reload its config')
+        kwin = dbus.SessionBus().get_object('org.kde.kded', '/modules/khotkeys')
+        dbus.Interface(kwin, 'org.kde.khotkeys').reread_configuration()

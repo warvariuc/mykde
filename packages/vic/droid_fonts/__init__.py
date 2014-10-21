@@ -1,6 +1,4 @@
-import os
-
-from mykde import BaseAction
+import mykde
 
 """
 If a font in the browser is not Droid, in Google Chrome right click on the text
@@ -11,13 +9,14 @@ font-family: 'lucida grande', tahoma, verdana, arial, sans-serif;
 
 And for each font do 'fc=match':
 
-vic@wic:~/Documents$ fc-match Helvetica
+$ fc-match Helvetica
 LiberationSans-Regular.ttf: "Liberation Sans" "Regular"
 
 Ok, you found the offending font. Add it to 'fonts.conf' file.
 """
 
-class Action(BaseAction):
+
+class Action(mykde.BaseAction):
 
     name = 'Droid fonts everywhere'
     description = """
@@ -28,6 +27,7 @@ In browser they should replace Verdana, Arial and other MS fonts.<br>
 """
 
     packages = ['fonts-droid']
+    affects = [mykde.KdeSettings]
 
     def proceed(self):
         self.update_kconfig('./kdeglobals', '~/.kde/share/config/kdeglobals')

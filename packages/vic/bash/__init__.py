@@ -1,9 +1,9 @@
 import os.path
 
-from mykde import BaseAction
+import mykde
 
 
-class Action(BaseAction):
+class Action(mykde.BaseAction):
 
     name = "Bash"
     description = "Custom prompt, colors. Install emacs"

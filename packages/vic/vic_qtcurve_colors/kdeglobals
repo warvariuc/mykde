@@ -109,7 +109,7 @@ ToolButtonStyleOtherToolbars=TextBesideIcon
 [WM]
 activeBackground=48,48,48
 activeBlend=1,1,1
-activeForeground=220,220,220
+activeForeground=160,160,160
 inactiveBackground=88,88,88
 inactiveBlend=75,71,67
-inactiveForeground=195,195,195
+inactiveForeground=160,160,160

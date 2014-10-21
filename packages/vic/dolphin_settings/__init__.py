@@ -1,7 +1,7 @@
-from mykde import BaseAction
+import mykde
 
 
-class Action(BaseAction):
+class Action(mykde.BaseAction):
 
     name = "Dolphin"
     description = "Custom Dolphin settings"

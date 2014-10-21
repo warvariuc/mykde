@@ -1,7 +1,7 @@
-from mykde import BaseAction
+import mykde
 
 
-class Action(BaseAction):
+class Action(mykde.BaseAction):
 
     name = 'Krusader'
     description = "Krusader with custom settings"
@@ -9,5 +9,4 @@ class Action(BaseAction):
 
     def proceed(self):
         self.update_kconfig('./krusaderrc', '~/.kde/share/config/krusaderrc')
-        self.update_xmlconfig('./krusaderui.rc',
-                              '~/.kde/share/apps/krusader/krusaderui.rc')
+        self.update_xmlconfig('./krusaderui.rc', '~/.kde/share/apps/krusader/krusaderui.rc')

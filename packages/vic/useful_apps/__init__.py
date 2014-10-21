@@ -1,7 +1,7 @@
-from mykde import BaseAction
+import mykde
 
 
-class Action(BaseAction):
+class Action(mykde.BaseAction):
 
     name = "Useful apps"
     packages = ['p7zip-full', 'speedcrunch', 'pavucontrol', 'kwrite']

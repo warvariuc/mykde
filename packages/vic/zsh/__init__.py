@@ -1,7 +1,7 @@
-from mykde import BaseAction
+import mykde
 
 
-class Action(BaseAction):
+class Action(mykde.BaseAction):
 
     name = 'Zsh'
     description = "Zsh with oh-my-zsh"

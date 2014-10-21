@@ -1,7 +1,7 @@
-from mykde import BaseAction
+import mykde
 
 
-class GoogleChrome(BaseAction):
+class Action(mykde.BaseAction):
 
     name = "Oracle Java Runtime Environment 8"
     description = """

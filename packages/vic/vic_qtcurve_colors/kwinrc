@@ -1,6 +1,3 @@
-[MouseBindings]
-CommandAllKey=Meta
-
 [Style]
 BorderSize=1
 ButtonsOnLeft=M

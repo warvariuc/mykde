@@ -1,7 +1,7 @@
-from mykde import BaseAction
+import mykde
 
 
-class XnView(BaseAction):
+class XnView(mykde.BaseAction):
 
     name = "XnView"
     description = """
@@ -10,7 +10,6 @@ XnViewMP is a powerful cross-platform media browser, viewer and converter, suppo
 <br>
 <img src="screenshot.png"/>
 """
-
     repositories = {
         'ppa:dhor/myway': ('', ''),
     }

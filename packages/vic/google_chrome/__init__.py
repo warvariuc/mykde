@@ -1,7 +1,7 @@
-from mykde import BaseAction
+import mykde
 
 
-class GoogleChrome(BaseAction):
+class Action(mykde.BaseAction):
 
     name = "Google Chrome"
     description = """

@@ -1,7 +1,7 @@
-from mykde import BaseAction
+import mykde
 
 
-class KubuntuBackportsPpa(BaseAction):
+class Action(mykde.BaseAction):
 
     name = "Kubuntu Backports PPA"
     description = """
