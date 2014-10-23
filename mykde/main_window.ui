@@ -74,7 +74,7 @@
          </sizepolicy>
         </property>
         <property name="statusTip">
-         <string>Proceed with the selected actions</string>
+         <string>Show application info</string>
         </property>
         <property name="text">
          <string>About</string>
@@ -115,7 +115,7 @@
          </size>
         </property>
         <property name="statusTip">
-         <string>Click to see action description. Double-click to check.</string>
+         <string>Click to see action description. Double-click to select only this action.</string>
         </property>
        </widget>
       </item>
