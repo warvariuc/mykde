@@ -3,7 +3,7 @@ import mykde
 
 class Action(mykde.BaseAction):
 
-    name = 'git'
+    name = 'Git'
     description = "Git with helper programs and custom settings"
 
     packages = ['git', 'gitk', 'giggle']

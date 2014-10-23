@@ -1,20 +1,12 @@
-from mykde import ActionPackage, ActionSet
+import mykde
 
 
-class ActionPackage(ActionPackage):
+class ActionPackage(mykde.ActionPackage):
     author = 'Victor Varvaryuk <victor.varvariuc@gmail.com>'
-    version = 1
+    version = 2
     description = """
 TODO:
 xnview - unpack to ~/apps/ and create .desktop file in Graphics category
 clip2net
 galaxy icons libreoffice, enter key behavior in calc
 """
-
-#from . import fonts
-#
-#
-#class TestActionSet(ActionSet):
-#    name = 'test'
-#    description = 'test'
-#    actions = [fonts.Action]  # list of action classes contained in this action set

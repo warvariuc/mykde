@@ -1,12 +1,9 @@
 __author__ = 'Victor Varvariuc<victor.varvariuc@gmail.com>'
 
-import subprocess
 import os
 import sys
 import time
 import re
-import traceback
-import functools
 import shlex
 
 import dbus
@@ -17,7 +14,6 @@ from PyKDE4.kdecore import KConfig
 from PyKDE4.kdeui import KGlobalSettings
 import pexpect
 
-from . import signals
 from .xml_tree_merge import XmlTreeMerger
 
 
@@ -40,13 +36,6 @@ class ActionMeta(type):
                                     action.description)
 
         return action
-
-    # the following methods are needed to be able to sort Action subclasses
-    def __lt__(self, other):
-        return id(self) < id(other)
-
-    def __eq__(self, other):
-        return id(self) == id(other)
 
 
 class BaseAction(metaclass=ActionMeta):
@@ -385,14 +374,6 @@ class BaseAction(metaclass=ActionMeta):
         """
 
 
-class ActionSet:
-    """Action set properties: description, actions contained in the set, etc.
-    """
-    name = ''
-    description = ''  # html description
-    actions = []  # list of action names contained in this action set
-
-
 class ActionPackage:
     """Action package properties: desription, author, etc.
     """
@@ -453,10 +434,10 @@ class KdeSettings(App):
     name = 'KDE settings'
 
     @staticmethod
-    def start():
+    def start(main_window):
         # https://projects.kde.org/projects/kde/kde-workspace/repository/revisions/master/entry/kcontrol/style/kcmstyle.cpp
         kGlobalSettings = KGlobalSettings.self()
-        main.main_window.print_html(
+        main_window.print_html(
             '<b style="color:green">Notifying all KDE applications about the '
             'global settings change.</b>')
         kGlobalSettings.emitChange(KGlobalSettings.StyleChanged)
@@ -475,3 +456,55 @@ class KHotKeys(App):
         action.print_text('Asking khotkeys to reload its config')
         kwin = dbus.SessionBus().get_object('org.kde.kded', '/modules/khotkeys')
         dbus.Interface(kwin, 'org.kde.khotkeys').reread_configuration()
+
+
+def run_action_set(main_window, action_classes):
+
+        actions = []
+        packages = []  # packages to install
+        repositories = {}  # repositories to add
+
+        for action_class in action_classes:
+            actions.append(action_class(main_window))
+            packages.extend(action_class.packages)
+            repositories.update(action_class.repositories)
+
+        # add new repositories
+        res = actions[0].install_repositories(repositories)
+        if not res:
+            main_window.print_html(
+                '<b style="color:red">Not all repositories installed. Not proceeding further.</b>')
+            return
+
+        # install missing packages
+        res = actions[0].install_packages(packages)
+        if not res:
+            main_window.print_html(
+                '<b style="color:red">Not all packages installed. Not proceeding further.</b>')
+            return
+
+        affected_apps = set()
+        for action in actions:
+            affected_apps.update(action.affects)
+
+        for app in affected_apps:
+            actions[0].call(app.stop, 'Stopping %s' % app.name)
+        time.sleep(2)  # give time for the apps to shut down
+
+        # perform the actions
+        for action in actions:
+            main_window.print_html('Performing action <b>"%s"</b>' % action.name)
+            try:
+                action.proceed()
+            except Exception as exc:
+                main_window.print_html('<span style="color:red"><b>Error:</b> %s</span>' % exc)
+            else:
+                main_window.print_html(
+                    'Finished action <b style="color:green">"%s"</b>' % action.name)
+
+        for app in affected_apps:
+            actions[0].call(app.start, 'Starting %s' % app.name)
+
+        main_window.print_html(
+            '<b style="background-color:green;color:white">Finished package installation.<br>'
+            'Some effects could be seen only when you restart your KDE session.</b>')
