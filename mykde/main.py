@@ -55,7 +55,7 @@ class MainWindow(QtGui.QMainWindow, FormClass):
         # uic adds a function to our class called setupUi
         # calling this creates all the widgets from the .ui file
         self.setupUi(self)
-        self.setWindowIcon(QtGui.QIcon('mykde/icon.png'))
+        self.setWindowIcon(QtGui.QIcon('mykde/icon_kde.svg'))
         # open URL in the default KDE browser
         self.textBrowser.setOpenExternalLinks(True)
         self.print_html('<h3 style="color:#268BD2">Welcome to the KDE transformer!</h3>')
