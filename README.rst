@@ -22,9 +22,10 @@ Requirements
 Installation and running
 ========================
 
-Download zip archive from https://github.com/warvariuc/mykde and unpack it on your desktop or other
-directory.
+#. Download zip archive from https://github.com/warvariuc/mykde/archive/master.zip
 
-Enter directory ``mykde`` and launch ``start.py`` (clicking on it or from command line
-``./start.py``).
-Select a package, check the actions you want to proceed with and click ``Proceed``.
+#. Unpack it on your desktop or some other directory.
+
+#. Enter directory ``mykde`` and launch ``start.py``.
+
+#. Select the package and the actions you want run and click ``Proceed``.
