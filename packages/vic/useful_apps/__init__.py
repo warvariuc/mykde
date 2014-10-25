@@ -4,7 +4,14 @@ import mykde
 class Action(mykde.BaseAction):
 
     name = "Useful apps"
-    packages = ['p7zip-full', 'speedcrunch', 'pavucontrol', 'kwrite']
+    packages = [
+        'p7zip-full',
+        'speedcrunch',
+        'pavucontrol',
+        'kwrite',
+        'muon',
+        'plasma-widget-homerun-kicker'
+    ]
     description = """
 Some useful applications:
 <ul>
