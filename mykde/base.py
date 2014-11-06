@@ -100,7 +100,6 @@ class BaseAction(metaclass=ActionMeta):
         self.print_html('<b style="color:#B08000">Installing additional repositories:</b>')
 
         command = '\n'.join(commands)
-        #        self.open_konsole(command)
         retcode = self.kdesudo(command, 'Install additional repositories')
         if retcode:
             self.print_html('<b style="color:red">An error happened during installation of '
@@ -113,8 +112,19 @@ class BaseAction(metaclass=ActionMeta):
                         'installed.</b>')
         return True
 
-    def install_packages(self, package_names):
-        """apt-get install packages, which are not yet installed
+    def update_package_index(self):
+        self.print_html('<b style="color:#B08000">Updating package index:</b>')
+        retcode = self.kdesudo('apt-get update', 'Updating package index')
+        if retcode:
+            self.print_html('<b style="color:red">An error happened while updating package '
+                            'index .</b>')
+            return False
+        self.print_html('<b style="color:green">The package index was sucessfully '
+                        'updated.</b>')
+        return True
+
+    def install_packages(self, package_names, update_package_index=True):
+        """Install packages, which are not yet installed
 
         Args:
             package_names (list): names of the packages to install
@@ -143,15 +153,8 @@ class BaseAction(metaclass=ActionMeta):
                             'installed</b>')
             return True
 
-        self.print_html('<b style="color:#B08000">Updating package index:</b>')
-        retcode = self.kdesudo('apt-get update', 'Updating package index')
-        if retcode:
-            self.print_html('<b style="color:red">An error happened while updating package '
-                            'index .</b>')
-            return False
-
-        self.print_html('<b style="color:green">The package index was sucessfully '
-                        'updated.</b>')
+        if update_package_index:
+            self.update_package_index()
 
         message = 'These additional packages must be installed:<ul>'
         for package_name, package_summary in sorted(packages.items()):
@@ -248,6 +251,8 @@ class BaseAction(metaclass=ActionMeta):
         Args:
             source_config_path (str): relative path to the source configuration file
             dest_config_path (str): path to the file to apply patch to
+            default_config_path (str): path to default configuration to use, if `dest_config_path`
+                does not exist
         """
         assert isinstance(source_config_path, str)
         assert isinstance(dest_config_path, str)
@@ -255,21 +260,23 @@ class BaseAction(metaclass=ActionMeta):
         source_config_path = self.make_abs_path(source_config_path)
         assert os.path.isfile(source_config_path)
         dest_config_path = self.make_abs_path(dest_config_path)
-        self.print_html('Updating configuration in <code>%s</code> from <code>%s</code>.'
-                        % (dest_config_path, source_config_path))
 
         if not os.path.exists(dest_config_path):
             assert default_config_path, 'Default configuration path must be specified'
             assert os.path.basename(dest_config_path) == os.path.basename(default_config_path)
             self.copy_file(default_config_path, os.path.dirname(dest_config_path))
 
-        merger = XmlTreeMerger(dest_config_path, source_config_path)
-        new_xml = merger.merge()
+        self.print_html('Updating configuration in <code>%s</code> from <code>%s</code>.'
+                        % (dest_config_path, source_config_path))
+
+        xml_merger = XmlTreeMerger()
+        dst_tree = xml_merger.merge(source_config_path, dest_config_path)
+
         dest_dir_path = os.path.dirname(dest_config_path)
         if not os.path.exists(dest_dir_path):
             self.create_directory(dest_dir_path)
-        with open(dest_config_path, 'w', encoding='utf-8') as file:
-            file.write(new_xml)
+
+        dst_tree.write(dest_config_path, xml_declaration=True, encoding='utf-8')
 
     def create_directory(self, dir_path):
         dir_util.mkpath(dir_path)
@@ -507,4 +514,5 @@ def run_action_set(main_window, action_classes):
 
         main_window.print_html(
             '<b style="background-color:green;color:white">Finished package installation.<br>'
-            'Some effects could be seen only when you restart your KDE session.</b>')
+            'Some effects can be seen after you restart the affected applications and/or your KDE '
+            'session.</b>')
