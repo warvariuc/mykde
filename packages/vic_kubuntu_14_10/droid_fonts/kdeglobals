@@ -9,3 +9,6 @@ menuFont=Droid Sans,12,-1,5,50,0,0,0,0,0
 smallestReadableFont=Droid Sans,11,-1,5,50,0,0,0,0,0
 taskbarFont=Droid Sans,11,-1,5,50,0,0,0,0,0
 toolBarFont=Droid Sans,11,-1,5,50,0,0,0,0,0
+
+[WM]
+activeFont=Droid Sans,12,-1,5,50,0,0,0,0,0
