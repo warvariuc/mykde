@@ -9,7 +9,7 @@ Overview
 ``mykde`` is a set of scripts and settings for quickly transforming your KDE desktop.
 It was tested with Kubuntu (which has the required versions of Python and libraries).
 
-You can see a screencast here: http://www.youtube.com/watch?v=GGINx5y_dDs
+You can see a screencast here: http://www.youtube.com/watch?v=siJbhhL2gbI
 
 
 Requirements
