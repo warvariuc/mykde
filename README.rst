@@ -15,7 +15,7 @@ You can see a screencast here: http://www.youtube.com/watch?v=GGINx5y_dDs
 Requirements
 ============
 
-* Kubuntu 14.04+
+* Kubuntu 14.10+
 * Python 3.4+
 
 
