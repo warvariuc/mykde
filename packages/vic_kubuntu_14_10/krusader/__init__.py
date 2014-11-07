@@ -9,4 +9,7 @@ class Action(mykde.BaseAction):
 
     def proceed(self):
         self.update_kconfig('./krusaderrc', '~/.kde/share/config/krusaderrc')
-        self.update_xmlconfig('./krusaderui.rc', '~/.kde/share/apps/krusader/krusaderui.rc')
+        self.update_xmlconfig(
+            './krusaderui.rc',
+            '~/.kde/share/apps/krusader/krusaderui.rc',
+            '/usr/share/kde4/apps/krusader/krusaderui.rc')
