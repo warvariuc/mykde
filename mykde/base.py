@@ -270,7 +270,7 @@ class BaseAction(metaclass=ActionMeta):
                         % (dest_config_path, source_config_path))
 
         xml_merger = XmlTreeMerger()
-        dst_tree = xml_merger.merge(source_config_path, dest_config_path)
+        dst_tree = xml_merger.merge(source_config_path, dest_config_path, indent=-1)
 
         dest_dir_path = os.path.dirname(dest_config_path)
         if not os.path.exists(dest_dir_path):
@@ -514,5 +514,5 @@ def run_action_set(main_window, action_classes):
 
         main_window.print_html(
             '<b style="background-color:green;color:white">Finished package installation.<br>'
-            'Some effects can be seen after you restart the affected applications and/or your KDE '
+            'Some effects can be seen after you restart the affected applications or your KDE '
             'session.</b>')

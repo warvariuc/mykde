@@ -8,6 +8,8 @@ class Action(mykde.BaseAction):
     packages = ['libreoffice', 'libreoffice-style-galaxy']
 
     def proceed(self):
+        # NOTE: the XML config is updated not really nice, because registrymodifications.xcu
+        # contains repeating nodes, but it works
         self.update_xmlconfig(
             './registrymodifications.xcu',
             '~/.config/libreoffice/4/user/registrymodifications.xcu',
