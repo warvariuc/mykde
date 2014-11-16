@@ -35,6 +35,4 @@ This work by <a href="http://si.smugmug.com">Simon Tong</a> is licensed under a
             group = containments.group(group_name)
             # http://api.kde.org/pykde-4.7-api/kdecore/KConfigGroup.html
             if group.readEntry('activityId') == current_activity_id:
-                wallpaper_image_group = group.group('Wallpaper').group('image')
-                wallpaper_image_group.writeEntry('wallpaper', wallpaper_path)
-
+                group.group('Wallpaper').group('image').writeEntry('wallpaper', wallpaper_path)
