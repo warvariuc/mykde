@@ -134,6 +134,9 @@ class BaseAction(metaclass=ActionMeta):
             self.print_html('<b style="color:green">No packages required to install.</b>')
             return True
 
+        if update_package_index:
+            self.update_package_index()
+
         packages = {package_name: None for package_name in package_names}
 
         apt_cache = apt.Cache()
@@ -152,9 +155,6 @@ class BaseAction(metaclass=ActionMeta):
             self.print_html('<b style="color:green">All required packages are already '
                             'installed</b>')
             return True
-
-        if update_package_index:
-            self.update_package_index()
 
         message = 'These additional packages must be installed:<ul>'
         for package_name, package_summary in sorted(packages.items()):
@@ -367,7 +367,8 @@ class BaseAction(metaclass=ActionMeta):
             except pexpect.TIMEOUT:
                 QtGui.QApplication.processEvents()
                 continue
-            line = process.before.decode('utf-8')
+            # http://gehrcke.de/category/technology/character-encoding/
+            line = process.before.decode().encode('raw_unicode_escape').decode("utf-8")
             if not line:
                 break
             output.append(line)
