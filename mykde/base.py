@@ -180,7 +180,9 @@ class BaseAction(metaclass=ActionMeta):
         return True
 
     def kdesudo(self, command, comment):
-        retcode, msg = self.call(['kdesudo', '--comment', comment, '-c', command])
+        retcode, msg = self.call(['kdesudo', '--comment', comment, '-c', command],
+                                 # https://forum.kde.org/viewtopic.php?f=225&t=123725
+                                 _fix_double_encoding=True)
         return retcode
 
     def run_konsole(self, text):
@@ -334,7 +336,7 @@ class BaseAction(metaclass=ActionMeta):
         else:
             os.remove(file_path)
 
-    def call(self, command, message=''):
+    def call(self, command, message='', _fix_double_encoding=False):
         """Run a [terminal] command.
 
         Args:
@@ -367,8 +369,10 @@ class BaseAction(metaclass=ActionMeta):
             except pexpect.TIMEOUT:
                 QtGui.QApplication.processEvents()
                 continue
+            line = process.before.decode()
             # http://gehrcke.de/category/technology/character-encoding/
-            line = process.before.decode().encode('raw_unicode_escape').decode("utf-8")
+            if _fix_double_encoding:
+                line = line.encode('raw_unicode_escape').decode("utf-8")
             if not line:
                 break
             output.append(line)

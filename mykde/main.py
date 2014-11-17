@@ -2,7 +2,6 @@ __author__ = "Victor Varvariuc <victor.varvariuc@gmail.com>"
 
 import os
 import sys
-import importlib
 import html
 
 from pkgutil import iter_modules
