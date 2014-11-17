@@ -10,7 +10,6 @@ class Action(mykde.BaseAction):
         'pavucontrol',
         'kwrite',
         'muon',
-        'plasma-widget-homerun-kicker'
     ]
     description = """
 Some useful applications:

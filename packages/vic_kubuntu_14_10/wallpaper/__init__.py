@@ -17,8 +17,8 @@ This work by <a href="http://si.smugmug.com">Simon Tong</a> is licensed under a
     affects = [mykde.Plasma]
 
     def proceed(self):
+        # there is no API no change the wallpaper, so we do it manually
         # https://bugs.kde.org/show_bug.cgi?id=217950
-        self.print_text('Installing %r' % self.name)
         wallpaper_path = self.copy_file(
             './flower monasterio cusco peru.jpg', '~/.kde/share/wallpapers/')
 
@@ -34,5 +34,6 @@ This work by <a href="http://si.smugmug.com">Simon Tong</a> is licensed under a
         for group_name in containments.groupList():
             group = containments.group(group_name)
             # http://api.kde.org/pykde-4.7-api/kdecore/KConfigGroup.html
-            if group.readEntry('activityId') == current_activity_id:
+            if (group.readEntry('activity') == 'Desktop' and
+                    group.readEntry('activityId') == current_activity_id):
                 group.group('Wallpaper').group('image').writeEntry('wallpaper', wallpaper_path)

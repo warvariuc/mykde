@@ -3,7 +3,7 @@ import mykde
 
 class Action(mykde.BaseAction):
 
-    name = 'Turn off Baloo'
+    name = 'Stop Baloo'
     description = "Disable KDE desktop search (Baloo)."
 
     def proceed(self):

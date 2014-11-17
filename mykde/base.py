@@ -135,6 +135,7 @@ class BaseAction(metaclass=ActionMeta):
             return True
 
         if update_package_index:
+            # TODO: update index only if some packages need to be installed or were not found
             self.update_package_index()
 
         packages = {package_name: None for package_name in package_names}
@@ -203,21 +204,21 @@ class BaseAction(metaclass=ActionMeta):
         file_path = os.path.abspath(file_path)
         return file_path
 
-    def update_kconfig(self, source_config_path, dest_config_path):
+    def update_kconfig(self, src_config_path, dst_config_path):
         """Update a configuration file which is in format of kconfig.
 
         Args:
-            source_config_path (str): relative path to the source configuration file
-            dest_config_path (str): path to the file to apply patch to
+            src_config_path (str): relative path to the source configuration file
+            dst_config_path (str): path to the file to apply patch to
         """
-        assert isinstance(source_config_path, str)
-        assert isinstance(dest_config_path, str)
-        assert not os.path.isabs(source_config_path), 'The source should be relative'
-        source_config_path = self.make_abs_path(source_config_path)
-        assert os.path.isfile(source_config_path)
-        dest_config_path = self.make_abs_path(dest_config_path)
+        assert isinstance(src_config_path, str)
+        assert isinstance(dst_config_path, str)
+        assert not os.path.isabs(src_config_path), 'The source should be relative'
+        src_config_path = self.make_abs_path(src_config_path)
+        assert os.path.isfile(src_config_path)
+        dst_config_path = self.make_abs_path(dst_config_path)
         self.print_html('Updating configuration in <code>%s</code> from <code>%s</code>.'
-                        % (dest_config_path, source_config_path))
+                        % (dst_config_path, src_config_path))
 
         # http://api.kde.org/4.x-api/kdelibs-apidocs/kdeui/html/classKGlobalSettings.html
         # http://api.kde.org/4.x-api/kdelibs-apidocs/kdecore/html/classKConfig.html
@@ -234,8 +235,8 @@ class BaseAction(metaclass=ActionMeta):
                 update_group(src_group.group(group_name), dst_group.group(group_name),
                              bkp_group.group(group_name))
 
-        src_cfg = KConfig(source_config_path, KConfig.SimpleConfig)
-        dst_cfg = KConfig(dest_config_path, KConfig.SimpleConfig)
+        src_cfg = KConfig(src_config_path, KConfig.SimpleConfig)
+        dst_cfg = KConfig(dst_config_path, KConfig.SimpleConfig)
         bkp_cfg = KConfig('', KConfig.SimpleConfig)  # we keep here original settings of dest
 
         update_group(src_cfg, dst_cfg, bkp_cfg)
@@ -248,7 +249,7 @@ class BaseAction(metaclass=ActionMeta):
     #            bkp_cfg.sync()
 
     def update_xmlconfig(self, source_config_path, dest_config_path, default_config_path=''):
-        """Update an XML configuration file
+        """Update an XML configuration file.
 
         Args:
             source_config_path (str): relative path to the source configuration file
@@ -410,7 +411,8 @@ class Plasma(App):
 
     @staticmethod
     def reload_config(action):
-        action.print_text('Asking plasma to reload its config')
+        if action:
+            action.print_text('Asking plasma to reload its config')
         plasma = dbus.SessionBus().get_object('org.kde.plasma-desktop', '/MainApplication')
         dbus.Interface(plasma, 'org.kde.KApplication').reparseConfiguration()
 
