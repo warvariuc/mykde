@@ -1,18 +1,4 @@
-# hidden files
-.*
-
 # compiled python scripts
 *.pyc
 *.pyo
 __pycache__
-
-# compiled resources
-ui_*.py
-*_rc.py
-
-# generic files to ignore
-*~
-*.lock
-*.DS_Store
-*.swp
-*.out
