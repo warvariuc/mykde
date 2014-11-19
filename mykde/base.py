@@ -140,6 +140,7 @@ class BaseAction(metaclass=ActionMeta):
 
         packages = {package_name: None for package_name in package_names}
 
+        self.print_text('Checking which packages are installed...')
         apt_cache = apt.Cache()
         apt_cache.open()
         for package_name in list(packages.keys()):
