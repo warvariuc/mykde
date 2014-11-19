@@ -1,3 +1,8 @@
+"""
+It is not enough to copy color scheme and set it as used in kdeglobals.
+KDE keeps using *current* colors, which are stored in kdeglobals too, but are set when you apply
+selected color theme in system settings.
+"""
 import mykde
 
 

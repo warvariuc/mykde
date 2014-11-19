@@ -4,6 +4,10 @@ from PyKDE4 import kdecore
 import mykde
 
 
+# http://api.kde.org/frameworks-api/frameworks5-apidocs/plasma-framework/html/classPlasma_1_1Applet.html
+PLASMA_DESKTOP_APPLETSRC_PATH = '~/.kde/share/config/plasma-desktop-appletsrc'
+
+
 class Action(mykde.BaseAction):
 
     name = "Wallpaper"
@@ -27,7 +31,8 @@ This work by <a href="http://si.smugmug.com">Simon Tong</a> is licensed under a
         current_activity_id = dbus.Interface(
             activity_manager, 'org.kde.ActivityManager.Activities').CurrentActivity()
 
-        konf_path = self.make_abs_path('~/.kde/share/config/plasma-desktop-appletsrc')
+        self.print_text('Patching %s' % PLASMA_DESKTOP_APPLETSRC_PATH)
+        konf_path = self.make_abs_path(PLASMA_DESKTOP_APPLETSRC_PATH)
         # http://api.kde.org/pykde-4.7-api/kdecore/KConfig.html
         konf = kdecore.KConfig(konf_path, kdecore.KConfig.SimpleConfig)
         containments = konf.group('Containments')

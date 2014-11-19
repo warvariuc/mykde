@@ -22,6 +22,7 @@ Install and add to all panels Homerun Kicker widget
 
     def proceed(self):
 
+        self.print_text('Patching %s' % PLASMA_DESKTOP_APPLETSRC_PATH)
         konf_path = self.make_abs_path(PLASMA_DESKTOP_APPLETSRC_PATH)
         # http://api.kde.org/pykde-4.7-api/kdecore/KConfig.html
         konf = kdecore.KConfig(konf_path, kdecore.KConfig.SimpleConfig)
@@ -74,9 +75,10 @@ Install and add to all panels Homerun Kicker widget
                 kgroup.writeEntry(entry_name, entry_value)
 
     def get_max_applet_id(self, conf):
-        # calculate maximum applet ID
+        """Calculate maximum applet ID, which is used when adding new applets.
+        """
         max_applet_id = 0
-        for containment_id, containment in conf['Containments'].items():
+        for containment in conf['Containments'].values():
             for applet_id in containment.get('Applets', []):
                 max_applet_id = max(max_applet_id, int(applet_id))
         return max_applet_id
