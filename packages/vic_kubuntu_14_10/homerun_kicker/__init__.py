@@ -77,7 +77,6 @@ Install and add to all panels Homerun Kicker widget
         # calculate maximum applet ID
         max_applet_id = 0
         for containment_id, containment in conf['Containments'].items():
-            max_applet_id = max(max_applet_id, int(containment_id))
             for applet_id in containment.get('Applets', []):
                 max_applet_id = max(max_applet_id, int(applet_id))
         return max_applet_id
