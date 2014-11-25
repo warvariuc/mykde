@@ -2,5 +2,7 @@
  <ActionProperties scheme="Default">
   <Action shortcut="Ctrl+PgDown" name="next-view"/>
   <Action shortcut="Ctrl+PgUp" name="previous-view"/>
+  <Action shortcut="" name="move-view-left"/>
+  <Action shortcut="" name="move-view-right"/>
  </ActionProperties>
 </kpartgui>

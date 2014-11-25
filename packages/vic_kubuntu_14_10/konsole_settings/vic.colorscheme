@@ -1,14 +1,14 @@
 [Background]
-Color=0,0,0
+Color=16,16,16
 
 [BackgroundIntense]
 Color=104,104,104
 
 [Color0]
-Color=0,0,0
+Color=32,32,32
 
 [Color0Intense]
-Color=104,104,104
+Color=119,119,119
 
 [Color1]
 Color=220,50,47
