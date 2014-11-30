@@ -26,7 +26,7 @@ In browser they should replace Verdana, Arial and other MS fonts.<br>
 <img src="screenshot.png"/>
 """
 
-    packages = ['fonts-droid']
+    packages = ['fonts-droid', 'fonts-liberation']
     affects = [mykde.KdeSettings]
 
     def proceed(self):

@@ -1,0 +1,14 @@
+[General]
+XftAntialias=true
+XftHintStyle=hintnone
+XftSubPixel=none
+desktopFont=Noto Sans UI,12,-1,5,50,0,0,0,0,0
+fixed=Liberation Mono,13,-1,5,50,0,0,0,0,0
+font=Noto Sans UI,12,-1,5,50,0,0,0,0,0
+menuFont=Noto Sans UI,12,-1,5,50,0,0,0,0,0
+smallestReadableFont=Noto Sans UI,11,-1,5,50,0,0,0,0,0
+taskbarFont=Noto Sans UI,11,-1,5,50,0,0,0,0,0
+toolBarFont=Noto Sans UI,11,-1,5,50,0,0,0,0,0
+
+[WM]
+activeFont=Noto Sans UI,12,-1,5,50,0,0,0,0,0
