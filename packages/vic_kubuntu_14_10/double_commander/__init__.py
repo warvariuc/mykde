@@ -14,3 +14,4 @@ It is inspired by Total Commander and features some new ideas."""
             './doublecmd.xml',
             '~/.config/doublecmd/doublecmd.xml',
             './doublecmd.xml')
+        self.copy_file('./shortcuts.scf', '~/.config/doublecmd/')

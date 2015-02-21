@@ -70,18 +70,18 @@
   </Tools>
   <Fonts>
     <Main>
-      <Name>Droid Sans</Name>
-      <Size>11</Size>
+      <Name>Sans Serif</Name>
+      <Size>12</Size>
       <Style>0</Style>
     </Main>
     <Editor>
       <Name>Monospace</Name>
-      <Size>11</Size>
+      <Size>12</Size>
       <Style>0</Style>
     </Editor>
     <Viewer>
       <Name>Monospace</Name>
-      <Size>11</Size>
+      <Size>12</Size>
       <Style>0</Style>
     </Viewer>
     <Log>
@@ -90,9 +90,9 @@
       <Style>0</Style>
     </Log>
     <ViewerBook>
-      <Name>Sans</Name>
-      <Size>11</Size>
-      <Style>0</Style>
+      <Name>default</Name>
+      <Size>14</Size>
+      <Style>1</Style>
     </ViewerBook>
   </Fonts>
   <ToolTips>
